@@ -7,23 +7,29 @@
 
 using jackal::lexer::Lexer;
 
-constexpr char const Lexer::peek() const noexcept { return *_code; }
+char const Lexer::peek() const noexcept { return *_code; }
 
-constexpr char const Lexer::peek_n(std::size_t n) const noexcept { return *(_code + n); }
+char const Lexer::peek_n(std::size_t n) const noexcept { return *(_code + n); }
 
-constexpr char const* Lexer::get() noexcept { return _code++; }
+char const* Lexer::get() noexcept { return _code++; }
 
-constexpr auto Lexer::tok_unary(Token::Kind kind) noexcept -> Token { return {kind, get(), 1}; }
+auto Lexer::tok_unary(Token::Kind kind) noexcept -> Token { return {kind, get(), 1}; }
 
-constexpr auto Lexer::tok_number() noexcept -> Token
+auto Lexer::tok_number() noexcept -> Token
 {
   char const* lexemeBegin = get();
   while (isdigit(peek()))
   {
     get();
   }
-  if (peek() == '.' && isdigit(peek_n(2)))
+  if (peek() == '.')
   {
+    if (!isdigit(peek_n(2)))
+    {
+      get();
+      return {Token::Kind::Unknown, lexemeBegin, _code};
+    }
+
     get();
     get();
   }
@@ -36,7 +42,7 @@ constexpr auto Lexer::tok_number() noexcept -> Token
   return {Token::Kind::Number, lexemeBegin, lexemeEnd};
 }
 
-constexpr auto Lexer::tok_identifier() noexcept -> Token
+auto Lexer::tok_identifier() noexcept -> Token
 {
   char const* lexemeBegin = get();
   while (isalpha(peek()))
@@ -48,7 +54,7 @@ constexpr auto Lexer::tok_identifier() noexcept -> Token
   return {Token::Kind::Identifier, lexemeBegin, lexemeEnd};
 }
 
-constexpr auto Lexer::next() noexcept -> Token
+auto Lexer::next() noexcept -> Token
 {
   while (std::isspace(peek()))
   {

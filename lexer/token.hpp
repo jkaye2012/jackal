@@ -19,7 +19,7 @@ struct Token
     Plus,
     // End of program
     Halt,
-    // Signals a dyntax error
+    // Signals a syntax error
     Unknown
   };
 
@@ -32,6 +32,9 @@ struct Token
       : _kind(kind), _lexeme(lexemeBegin, lexemeEnd)
   {
   }
+
+  constexpr Kind kind() const noexcept { return _kind; }
+  constexpr std::string_view lexeme() const noexcept { return _lexeme; }
 
  private:
   Kind _kind;
