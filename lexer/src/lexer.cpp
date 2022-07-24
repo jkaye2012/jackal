@@ -56,7 +56,7 @@ auto Lexer::tok_identifier() noexcept -> Token
 
 auto Lexer::next() noexcept -> Token
 {
-  while (std::isspace(peek()))
+  while (peek() == ' ')
   {
     get();
   }
@@ -65,6 +65,10 @@ auto Lexer::next() noexcept -> Token
   if (current == '\0')
   {
     return tok_unary(Token::Kind::Halt);
+  }
+  else if (current == '\n')
+  {
+    return tok_unary(Token::Kind::Newline);
   }
   else if (current == '+')
   {

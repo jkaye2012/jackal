@@ -9,6 +9,8 @@ struct Token
 {
   enum class Kind
   {
+    // \n
+    Newline,
     // \d+[\.\d+]?
     Number,
     // [a-z][a-zA-Z\d]*
