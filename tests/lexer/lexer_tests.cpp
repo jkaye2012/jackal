@@ -1,5 +1,9 @@
+#include <array>
 #include <catch.hpp>
+#include <cstddef>
+#include <initializer_list>
 #include <string_view>
+#include <utility>
 
 #include "lexer/lexer.hpp"
 #include "lexer/token.hpp"
@@ -18,6 +22,16 @@ static void require_next(Lexer& lexer, Token::Kind kind, std::string_view lexeme
 }
 
 static void require_next(Lexer& lexer, Token::Kind kind) { require_next(lexer, kind, ""); }
+
+static void require_sequence(
+    Lexer& lexer, std::initializer_list<std::pair<Token::Kind, std::string_view>> const& tokens)
+{
+  for (auto const& [kind, lexeme] : tokens)
+  {
+    require_next(lexer, kind, lexeme);
+  }
+  require_next(lexer, Token::Kind::Halt);
+}
 
 TEST_CASE("Newline should lex", "[lexer][lexer_token]")
 {
@@ -104,11 +118,12 @@ TEST_CASE("Constant assignment expression should lex", "[lexer][lexer_expression
   auto const* code = "let x = 12";
   Lexer lexer(code);
 
-  require_next(lexer, Token::Kind::Identifier, "let");
-  require_next(lexer, Token::Kind::Identifier, "x");
-  require_next(lexer, Token::Kind::Equal, "=");
-  require_next(lexer, Token::Kind::Number, "12");
-  require_next(lexer, Token::Kind::Halt);
+  require_sequence(lexer, {
+                              {Token::Kind::Identifier, "let"},
+                              {Token::Kind::Identifier, "x"},
+                              {Token::Kind::Equal, "="},
+                              {Token::Kind::Number, "12"},
+                          });
 }
 
 TEST_CASE("Compound assignment expression should lex", "[lexer][lexer_expression]")
@@ -116,13 +131,14 @@ TEST_CASE("Compound assignment expression should lex", "[lexer][lexer_expression
   auto const* code = "let x = y + z";
   Lexer lexer(code);
 
-  require_next(lexer, Token::Kind::Identifier, "let");
-  require_next(lexer, Token::Kind::Identifier, "x");
-  require_next(lexer, Token::Kind::Equal, "=");
-  require_next(lexer, Token::Kind::Identifier, "y");
-  require_next(lexer, Token::Kind::Plus, "+");
-  require_next(lexer, Token::Kind::Identifier, "z");
-  require_next(lexer, Token::Kind::Halt);
+  require_sequence(lexer, {
+                              {Token::Kind::Identifier, "let"},
+                              {Token::Kind::Identifier, "x"},
+                              {Token::Kind::Equal, "="},
+                              {Token::Kind::Identifier, "y"},
+                              {Token::Kind::Plus, "+"},
+                              {Token::Kind::Identifier, "z"},
+                          });
 }
 
 TEST_CASE("Print expression should lex", "[lexer][lexer_expression]")
@@ -130,7 +146,5 @@ TEST_CASE("Print expression should lex", "[lexer][lexer_expression]")
   auto const* code = "print 123";
   Lexer lexer(code);
 
-  require_next(lexer, Token::Kind::Identifier, "print");
-  require_next(lexer, Token::Kind::Number, "123");
-  require_next(lexer, Token::Kind::Halt);
+  require_sequence(lexer, {{Token::Kind::Identifier, "print"}, {Token::Kind::Number, "123"}});
 }
