@@ -15,8 +15,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory(lexer)
 add_subdirectory(bytecode)
+add_subdirectory(ast)
 add_subdirectory(tests)
 
 add_executable(main main.cpp)
 
-target_link_libraries(main PRIVATE spdlog::spdlog jackal_lexer jackal_bytecode)
+target_link_libraries(main PRIVATE spdlog::spdlog jackal_lexer jackal_bytecode jackal_ast)
