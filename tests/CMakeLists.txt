@@ -3,6 +3,7 @@ set(test_files
   "test_main.cpp"
   "lexer/lexer_tests.cpp"
   "lexer/token_tests.cpp"
+  "util/result_tests.cpp"
   )
 
 add_executable(jackal_tests ${test_files})
