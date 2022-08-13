@@ -113,6 +113,16 @@ TEST_CASE("Halt should lex", "[lexer][lexer_token]")
   require_next(lexer, Token::Kind::Halt);
 }
 
+TEST_CASE("Halt should lex continuously", "[lexer][lexer_token]")
+{
+  auto const* code = "";
+  Lexer lexer(code);
+
+  require_next(lexer, Token::Kind::Halt);
+  require_next(lexer, Token::Kind::Halt);
+  require_next(lexer, Token::Kind::Halt);
+}
+
 TEST_CASE("Constant assignment expression should lex", "[lexer][lexer_expression]")
 {
   auto const* code = "let x = 12";
@@ -147,4 +157,57 @@ TEST_CASE("Print expression should lex", "[lexer][lexer_expression]")
   Lexer lexer(code);
 
   require_sequence(lexer, {{Token::Kind::Identifier, "print"}, {Token::Kind::Number, "123"}});
+}
+
+TEST_CASE("Peeking token multiple times should repeatedly return same token", "[lexer]")
+{
+  auto const* code = "print";
+  Lexer lexer(code);
+
+  REQUIRE(lexer.peek_token<0>().kind() == Token::Kind::Identifier);
+  REQUIRE(lexer.peek_token<0>().lexeme() == "print");
+}
+
+TEST_CASE("Next after peek should return peeked token", "[lexer]")
+{
+  auto const* code = "print 456";
+  Lexer lexer(code);
+
+  REQUIRE(lexer.peek_token<0>().kind() == Token::Kind::Identifier);
+  REQUIRE(lexer.peek_token<0>().lexeme() == "print");
+  require_sequence(lexer, {{Token::Kind::Identifier, "print"}, {Token::Kind::Number, "456"}});
+}
+
+TEST_CASE("Peeking beyond end of code should return halt", "[lexer]")
+{
+  auto const* code = "whoops";
+  Lexer lexer(code);
+  REQUIRE(lexer.peek_token<3>().kind() == Token::Kind::Halt);
+}
+
+TEST_CASE("Peeking while halted should return halt", "[lexer]")
+{
+  auto const* code = "";
+  Lexer lexer(code);
+  REQUIRE(lexer.peek_token<3>().kind() == Token::Kind::Halt);
+}
+
+TEST_CASE("Peeking and next should not set halted until halt is consumed", "[lexer]")
+{
+  auto const* code = "1 2 3 4";
+  Lexer lexer(code);
+
+  REQUIRE(lexer.peek_token<3>().lexeme() == "4");
+  REQUIRE(lexer.peek_token<0>().lexeme() == "1");
+  REQUIRE(lexer.next().lexeme() == "1");
+  REQUIRE(lexer.next().lexeme() == "2");
+  REQUIRE(lexer.peek_token<2>().kind() == Token::Kind::Halt);
+  REQUIRE(lexer.peek_token<1>().lexeme() == "4");
+  REQUIRE_FALSE(lexer.is_halted());
+  REQUIRE(lexer.next().lexeme() == "3");
+  REQUIRE(lexer.next().lexeme() == "4");
+  REQUIRE(lexer.peek_token<0>().kind() == Token::Kind::Halt);
+  REQUIRE_FALSE(lexer.is_halted());
+  REQUIRE(lexer.next().kind() == Token::Kind::Halt);
+  REQUIRE(lexer.is_halted());
 }

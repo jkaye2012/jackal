@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <string>
 #include <string_view>
 
 namespace jackal::lexer
@@ -37,6 +38,7 @@ struct Token
 
   constexpr Kind kind() const noexcept { return _kind; }
   constexpr std::string_view lexeme() const noexcept { return _lexeme; }
+  std::string lexeme_str() const noexcept { return std::string(_lexeme); }
 
  private:
   Kind _kind;

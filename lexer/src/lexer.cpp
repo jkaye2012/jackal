@@ -7,11 +7,11 @@
 
 using jackal::lexer::Lexer;
 
-char const Lexer::peek() const noexcept { return *_code; }
+auto Lexer::peek() const noexcept -> char const { return *_code; }
 
-char const Lexer::peek_n(std::size_t n) const noexcept { return *(_code + n); }
+auto Lexer::peek_n(std::size_t n) const noexcept -> char const { return *(_code + n); }
 
-char const* Lexer::get() noexcept { return _code++; }
+auto Lexer::get() noexcept -> char const* { return _code++; }
 
 auto Lexer::tok_unary(Token::Kind kind) noexcept -> Token { return {kind, get(), 1}; }
 
@@ -56,6 +56,18 @@ auto Lexer::tok_identifier() noexcept -> Token
 
 auto Lexer::next() noexcept -> Token
 {
+  if (!_peek.empty())
+  {
+    auto token = _peek.front();
+    _peek.pop_front();
+    return token;
+  }
+
+  return _next();
+}
+
+auto Lexer::_next() noexcept -> Token
+{
   while (peek() == ' ')
   {
     get();
@@ -64,7 +76,7 @@ auto Lexer::next() noexcept -> Token
   char const current = peek();
   if (current == '\0')
   {
-    return tok_unary(Token::Kind::Halt);
+    return {Token::Kind::Halt, _code, 1};
   }
   else if (current == '\n')
   {
@@ -91,3 +103,5 @@ auto Lexer::next() noexcept -> Token
     return tok_unary(Token::Kind::Unknown);
   }
 }
+
+auto Lexer::is_halted() noexcept -> bool { return _peek.empty() && peek() == '\0'; }

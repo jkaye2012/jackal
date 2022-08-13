@@ -27,15 +27,24 @@ struct Result
   /// @brief Constructs an ok Result.
   ///
   /// @param result the value to wrap
+  /// @returns an ok Result
   static constexpr Result from(T result) noexcept { return Result(std::move(result)); }
+
   /// @brief Constructs an err Result.
   ///
   /// @param error the error to wrap
+  /// @returns an err Result
   static constexpr Result from(Err error) noexcept { return Result(std::move(error)); }
+
+  /// @brief Constructs an ok Result using the default constructor of @p T.
+  ///
+  /// @returns an ok Result
+  static constexpr Result ok_default() noexcept { return Result(T()); }
 
   /// @brief Applies a function to the Result if it is ok, does nothing if it is err.
   ///
   /// @param func the function to apply to an ok Result
+  /// @returns the mapped Result
   template <typename U>
   [[nodiscard]] constexpr Result<U, Err> map(std::function<U(T const&)> const& func) const noexcept
   {
@@ -49,6 +58,7 @@ struct Result
   /// @brief Applies a function to the Result if it is err, does nothing if it is ok.
   ///
   /// @param func the function to apply to an err Result
+  /// @returns the mapped Result
   template <typename UErr>
   [[nodiscard]] constexpr Result<T, UErr> map_err(
       std::function<UErr(Err const&)> const& func) const noexcept
@@ -64,6 +74,7 @@ struct Result
   ///
   /// @param okFunc the function to apply to an ok Result
   /// @param errFunc the function to apply to an err Result
+  /// @returns the mapped Result
   template <typename U, typename UErr>
   [[nodiscard]] constexpr Result<U, UErr> map_flat(
       std::function<U(T const&)> const& okFunc,
@@ -75,6 +86,41 @@ struct Result
     }
     return Result<U, UErr>::from(errFunc(err()));
   }
+
+  /// @brief Combines another Result into the current instance depending on mutual state.
+  ///
+  /// If the current instance is err, the operation is a no-op.
+  /// Otherwise, if the other instance is err, the value of the current instance is replaced by the
+  /// error. If neither are err (both are ok), @p func is used to update the current instance's
+  /// value.
+  ///
+  /// @param func the subsumption function to apply to the current instance if both Results are ok
+  /// @param other the Result instance to subsume
+  template <typename U>
+  constexpr void subsume(std::function<void(T&, U const&)> const& func,
+                         Result<U, Err> const& other) noexcept
+  {
+    if (is_err())
+    {
+      return;
+    }
+    else if (other.is_err())
+    {
+      _result.template emplace<Err>(other.err());
+    }
+    else
+    {
+      T& current = std::get<T>(_result);
+      func(current, other.ok());
+    }
+  }
+
+  constexpr void operator>>(std::function<void()> const& func) noexcept
+  {
+    if (is_ok()) func();
+  }
+
+  constexpr T const* operator->() const noexcept { return std::get_if<T>(&_result); }
 
   /// @returns whether the Result is in the ok state
   [[nodiscard]] constexpr bool is_ok() const noexcept { return std::holds_alternative<T>(_result); }
