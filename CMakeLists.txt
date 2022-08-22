@@ -9,7 +9,6 @@ set(CMAKE_CXX_FLAGS_RELEASE "-Ofast")
 
 add_subdirectory(third_party)
 
-# TODO: improve these, target_include_directories?
 include_directories(third_party/spdlog/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
