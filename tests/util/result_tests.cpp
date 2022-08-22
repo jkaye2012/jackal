@@ -1,7 +1,8 @@
+#include <catch.hpp>
+
 #include <functional>
 #include <string>
 
-#include "catch.hpp"
 #include "util/result.hpp"
 
 using Result = jackal::util::Result<int, std::string>;

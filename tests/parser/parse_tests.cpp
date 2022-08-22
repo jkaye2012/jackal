@@ -1,5 +1,6 @@
+#include <catch.hpp>
+
 #include "ast/operator.hpp"
-#include "catch.hpp"
 #include "parser/include.hpp"
 #include "parser/parse.hpp"
 

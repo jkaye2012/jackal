@@ -1,5 +1,6 @@
-#include <array>
 #include <catch.hpp>
+
+#include <array>
 #include <cstddef>
 #include <initializer_list>
 #include <string_view>

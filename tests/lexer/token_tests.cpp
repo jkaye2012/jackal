@@ -1,4 +1,5 @@
-#include "catch.hpp"
+#include <catch.hpp>
+
 #include "lexer/token.hpp"
 
 using jackal::lexer::Token;
