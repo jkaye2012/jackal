@@ -21,4 +21,4 @@ add_subdirectory(tests)
 
 add_executable(main main.cpp)
 
-target_link_libraries(main PRIVATE spdlog::spdlog jackal_lexer jackal_bytecode jackal_ast jackal_parser)
+# target_link_libraries(main PRIVATE spdlog::spdlog jackal_lexer jackal_bytecode jackal_ast jackal_parser)
