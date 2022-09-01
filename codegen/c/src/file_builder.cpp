@@ -6,6 +6,8 @@
 #include "codegen/c/dependency.hpp"
 
 using jackal::codegen::c::FileBuilder;
+using jackal::codegen::c::FunctionCall;
+using jackal::codegen::c::FunctionDefinition;
 
 auto FileBuilder::add_dependency(Dependency dep) noexcept -> std::optional<DivergentDependencyError>
 {
@@ -17,11 +19,6 @@ auto FileBuilder::add_dependency(Dependency dep) noexcept -> std::optional<Diver
 
   _dependencies.emplace(dep.include(), std::move(dep));
   return std::nullopt;
-}
-
-auto FileBuilder::add_instruction(std::string instruction) noexcept -> void
-{
-  _instructions.emplace_back(std::move(instruction));
 }
 
 auto FileBuilder::build() noexcept -> std::string
@@ -42,11 +39,23 @@ auto FileBuilder::build() noexcept -> std::string
   oss << std::endl;
 
   oss << "int main(int argc, char** argv) {" << std::endl;
-  for (auto const& inst : _instructions)
-  {
-    oss << inst << std::endl;
-  }
+  oss << _file.str() << std::endl;
   oss << '}' << std::endl;
 
   return oss.str();
 }
+
+auto FileBuilder::operator<<(std::string_view code) noexcept -> std::ostream&
+{
+  return _file << code;
+}
+
+auto FileBuilder::operator<<(char code) noexcept -> std::ostream& { return _file << code; }
+
+FunctionCall::FunctionCall(FileBuilder& fileBuilder, std::string_view name) noexcept
+    : _fileBuilder(fileBuilder)
+{
+  _fileBuilder << name << '(';
+}
+
+FunctionCall::~FunctionCall() noexcept { _fileBuilder << ");" << std::endl; }
