@@ -6,6 +6,8 @@
 #include <optional>
 
 #include "ast/expression.hpp"
+#include "ast/node.hpp"
+#include "ast/visitor.hpp"
 #include "parser/include.hpp"
 #include "parser/keywords.hpp"
 

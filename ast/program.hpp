@@ -19,7 +19,7 @@ struct Instruction : public AbstractSyntaxNode
       return binding.was_modified() || print.was_modified();
     }
 
-    [[nodiscard]] constexpr Instruction build() const noexcept
+    [[nodiscard]] Instruction build() const noexcept
     {
       assert(binding.was_modified() ^ print.was_modified());
       if (binding.was_modified())
@@ -31,8 +31,10 @@ struct Instruction : public AbstractSyntaxNode
     }
   };
 
-  explicit constexpr Instruction(Binding binding) noexcept : _instr(std::move(binding)) {}
-  explicit constexpr Instruction(Print print) noexcept : _instr(std::move(print)) {}
+  explicit Instruction(Binding binding) noexcept : _instr(std::move(binding)) {}
+  explicit Instruction(Print print) noexcept : _instr(std::move(print)) {}
+
+  void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
 
   [[nodiscard]] constexpr Binding const& binding_unsafe() const noexcept
   {
@@ -49,6 +51,8 @@ struct Instruction : public AbstractSyntaxNode
 
 struct Program : public AbstractSyntaxNode
 {
+  void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
+
   void add_instruction(Instruction instr) noexcept;
 
   [[nodiscard]] constexpr std::vector<Instruction> const& instructions() const noexcept

@@ -23,21 +23,21 @@ struct Operator : public AbstractSyntaxNode
       return *this;
     }
 
-    constexpr Builder& set_a(Value a) noexcept
+    Builder& set_a(Value a) noexcept
     {
       modified();
       _a = std::move(a);
       return *this;
     }
 
-    constexpr Builder& set_b(Value b) noexcept
+    Builder& set_b(Value b) noexcept
     {
       modified();
       _b = std::move(b);
       return *this;
     }
 
-    [[nodiscard]] constexpr Operator build() const noexcept
+    [[nodiscard]] Operator build() const noexcept
     {
       return Operator(_type.value(), _a.value(), _b.value());
     }
@@ -48,10 +48,11 @@ struct Operator : public AbstractSyntaxNode
     std::optional<Value> _b;
   };
 
-  constexpr Operator(Type type, Value a, Value b) noexcept
-      : _type(type), _a(std::move(a)), _b(std::move(b))
+  Operator(Type type, Value a, Value b) noexcept : _type(type), _a(std::move(a)), _b(std::move(b))
   {
   }
+
+  void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
 
   [[nodiscard]] constexpr Type const& type() const noexcept { return _type; }
   [[nodiscard]] constexpr Value const& a() const noexcept { return _a; }

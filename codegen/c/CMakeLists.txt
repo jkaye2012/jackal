@@ -1,7 +1,7 @@
 set(codegen_c_src_files
+  "src/c_visitor.cpp"
   "src/dependency.cpp"
   "src/file_builder.cpp"
-  "src/visitor.cpp"
   )
 
 add_library(jackal_codegen_c STATIC ${codegen_c_src_files})

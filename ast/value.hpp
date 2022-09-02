@@ -8,22 +8,19 @@
 
 #include "ast/builder.hpp"
 #include "ast/node.hpp"
+#include "ast/visitor.hpp"
 
 namespace jackal::ast
 {
 struct Constant : public AbstractSyntaxNode
 {
-  explicit constexpr Constant(int64_t constant) noexcept : _constant(constant) {}
-  explicit constexpr Constant(double constant) noexcept : _constant(constant) {}
+  explicit Constant(int64_t constant) noexcept : _constant(constant) {}
+  explicit Constant(double constant) noexcept : _constant(constant) {}
 
-  [[nodiscard]] constexpr int64_t int_unsafe() const noexcept
-  {
-    return std::get<int64_t>(_constant);
-  }
-  [[nodiscard]] constexpr double double_unsafe() const noexcept
-  {
-    return std::get<double>(_constant);
-  }
+  void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
+
+  [[nodiscard]] int64_t int_unsafe() const noexcept { return std::get<int64_t>(_constant); }
+  [[nodiscard]] double double_unsafe() const noexcept { return std::get<double>(_constant); }
 
  private:
   std::variant<int64_t, double> _constant;
@@ -31,9 +28,11 @@ struct Constant : public AbstractSyntaxNode
 
 struct LocalVariable : public AbstractSyntaxNode
 {
-  explicit constexpr LocalVariable(std::string_view name) noexcept : _name(name) {}
+  explicit LocalVariable(std::string_view name) noexcept : _name(name) {}
 
-  [[nodiscard]] constexpr std::string_view name() const noexcept { return _name; }
+  void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
+
+  [[nodiscard]] std::string_view name() const noexcept { return _name; }
 
  private:
   std::string_view _name;
@@ -80,14 +79,16 @@ struct Value : public AbstractSyntaxNode
     std::optional<LocalVariable> _local;
   };
 
-  explicit constexpr Value(Constant constant) noexcept : _value(std::move(constant)) {}
-  explicit constexpr Value(LocalVariable local) noexcept : _value(std::move(local)) {}
+  explicit Value(Constant constant) noexcept : _value(std::move(constant)) {}
+  explicit Value(LocalVariable local) noexcept : _value(std::move(local)) {}
 
-  [[nodiscard]] constexpr Constant const& constant_unsafe() const noexcept
+  void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
+
+  [[nodiscard]] Constant const& constant_unsafe() const noexcept
   {
     return std::get<Constant>(_value);
   }
-  [[nodiscard]] constexpr LocalVariable const& local_variable_unsafe() const noexcept
+  [[nodiscard]] LocalVariable const& local_variable_unsafe() const noexcept
   {
     return std::get<LocalVariable>(_value);
   }

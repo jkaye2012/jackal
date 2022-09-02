@@ -23,7 +23,7 @@ struct Expression : public AbstractSyntaxNode
       return op.was_modified() || value.was_modified();
     }
 
-    [[nodiscard]] constexpr Expression build() const noexcept
+    [[nodiscard]] Expression build() const noexcept
     {
       assert(op.was_modified() ^ value.was_modified());
       if (op.was_modified())
@@ -44,8 +44,10 @@ struct Expression : public AbstractSyntaxNode
     return std::get<Value>(_expr);
   }
 
-  explicit constexpr Expression(Operator op) : _expr(std::move(op)) {}
-  explicit constexpr Expression(Value value) : _expr(std::move(value)) {}
+  explicit Expression(Operator op) : _expr(std::move(op)) {}
+  explicit Expression(Value value) : _expr(std::move(value)) {}
+
+  void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
 
  private:
   std::variant<Operator, Value> _expr;
@@ -55,21 +57,21 @@ struct Binding : public AbstractSyntaxNode
 {
   struct Builder : public AstBuilder
   {
-    constexpr Builder& set_variable(std::string_view name) noexcept
+    Builder& set_variable(std::string_view name) noexcept
     {
       modified();
       _variable = LocalVariable(name);
       return *this;
     }
 
-    constexpr Builder& set_expression(Expression expr) noexcept
+    Builder& set_expression(Expression expr) noexcept
     {
       modified();
       _expr = std::move(expr);
       return *this;
     }
 
-    [[nodiscard]] constexpr Binding build() const noexcept
+    [[nodiscard]] Binding build() const noexcept
     {
       return Binding(_variable.value(), _expr.value());
     }
@@ -79,10 +81,12 @@ struct Binding : public AbstractSyntaxNode
     std::optional<Expression> _expr;
   };
 
-  constexpr Binding(LocalVariable variable, Expression expr) noexcept
+  Binding(LocalVariable variable, Expression expr) noexcept
       : _variable(std::move(variable)), _expr(std::move(expr))
   {
   }
+
+  void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
 
   [[nodiscard]] constexpr LocalVariable const& variable() const noexcept { return _variable; }
   [[nodiscard]] constexpr Expression const& expression() const noexcept { return _expr; }
@@ -96,20 +100,22 @@ struct Print : public AbstractSyntaxNode
 {
   struct Builder : public AstBuilder
   {
-    constexpr Builder& set_expression(Expression expr) noexcept
+    Builder& set_expression(Expression expr) noexcept
     {
       modified();
       _expr = std::move(expr);
       return *this;
     }
 
-    [[nodiscard]] constexpr Print build() const noexcept { return Print(_expr.value()); }
+    [[nodiscard]] Print build() const noexcept { return Print(_expr.value()); }
 
    private:
     std::optional<Expression> _expr;
   };
 
-  explicit constexpr Print(Expression expr) noexcept : _expr(std::move(expr)) {}
+  explicit Print(Expression expr) noexcept : _expr(std::move(expr)) {}
+
+  void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
 
   [[nodiscard]] constexpr Expression const& expression() const noexcept { return _expr; }
 
