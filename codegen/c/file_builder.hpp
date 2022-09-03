@@ -34,6 +34,7 @@ struct DivergentDependencyError
   std::string _include;
 };
 
+// TODO: handle indentation
 struct FileBuilder
 {
   [[nodiscard]] std::optional<DivergentDependencyError> add_dependency(Dependency dep) noexcept;

@@ -6,7 +6,7 @@
 
 using jackal::parser::Parser;
 
-TEST_CASE("Parsing integer constant should return Value")
+TEST_CASE("Parsing integer constant should return Value", "[parser]")
 {
   Parser parser("123");
   auto result = parser.parse_value();
@@ -15,7 +15,7 @@ TEST_CASE("Parsing integer constant should return Value")
   REQUIRE(result->constant_unsafe().int_unsafe() == 123);
 }
 
-TEST_CASE("Parsing double constant should return Value")
+TEST_CASE("Parsing double constant should return Value", "[parser]")
 {
   Parser parser("1.23");
   auto result = parser.parse_value();
@@ -24,7 +24,7 @@ TEST_CASE("Parsing double constant should return Value")
   REQUIRE(result->constant_unsafe().double_unsafe() == Approx(1.23));
 }
 
-TEST_CASE("Parsing variable identifier should return Value")
+TEST_CASE("Parsing variable identifier should return Value", "[parser]")
 {
   Parser parser("foo");
   auto result = parser.parse_value();
@@ -56,7 +56,7 @@ TEST_CASE("Parsing single print instruction should return Print", "[parser]")
   REQUIRE(print.expression().operator_unsafe().b().constant_unsafe().int_unsafe() == 2);
 }
 
-TEST_CASE("Parsing program should return all instructions")
+TEST_CASE("Parsing program should return all instructions", "[parser]")
 {
   Parser parser("let x = 1 + 2\nlet y = 3\nprint x + y\n");
   auto result = parser.parse_program();

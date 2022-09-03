@@ -121,6 +121,7 @@ struct Result
   }
 
   constexpr T const* operator->() const noexcept { return std::get_if<T>(&_result); }
+  constexpr T* operator->() noexcept { return std::get_if<T>(&_result); }
 
   /// @returns whether the Result is in the ok state
   [[nodiscard]] constexpr bool is_ok() const noexcept { return std::holds_alternative<T>(_result); }

@@ -41,7 +41,7 @@ auto FileBuilder::build() noexcept -> std::string
   oss << std::endl;
 
   oss << "int main(int argc, char** argv) {" << std::endl;
-  oss << _file.str() << std::endl;
+  oss << _file.str();
   oss << '}' << std::endl;
 
   return oss.str();

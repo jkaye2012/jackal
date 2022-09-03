@@ -16,10 +16,10 @@ struct Dependency
     Source
   };
 
-  Dependency(Type type, std::string include) : _type(type), _include(std::move(include)) {}
+  Dependency(Type type, std::string_view include) : _type(type), _include(include) {}
 
-  Dependency(Type type, std::string include, std::string link)
-      : _type(type), _include(std::move(include)), _link(std::move(link))
+  Dependency(Type type, std::string_view include, std::string_view link)
+      : _type(type), _include(include), _link(link)
   {
   }
 
@@ -41,7 +41,7 @@ struct Dependency
 
  private:
   Type _type;
-  std::string _include;
-  std::optional<std::string> _link;
+  std::string_view _include;
+  std::optional<std::string_view> _link;
 };
 }  // namespace jackal::codegen::c
