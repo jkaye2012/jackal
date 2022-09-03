@@ -14,7 +14,7 @@ struct Instruction : public AbstractSyntaxNode
     Binding::Builder binding;
     Print::Builder print;
 
-    [[nodiscard]] constexpr bool was_modified() const noexcept
+    [[nodiscard]] bool was_modified() const noexcept
     {
       return binding.was_modified() || print.was_modified();
     }
@@ -31,22 +31,19 @@ struct Instruction : public AbstractSyntaxNode
     }
   };
 
-  explicit Instruction(Binding binding) noexcept : _instr(std::move(binding)) {}
-  explicit Instruction(Print print) noexcept : _instr(std::move(print)) {}
+  explicit Instruction(Binding binding) noexcept : instruction(std::move(binding)) {}
+  explicit Instruction(Print print) noexcept : instruction(std::move(print)) {}
 
   void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
 
-  [[nodiscard]] constexpr Binding const& binding_unsafe() const noexcept
+  [[nodiscard]] Binding const& binding_unsafe() const noexcept
   {
-    return std::get<Binding>(_instr);
-  }
-  [[nodiscard]] constexpr Print const& print_unsafe() const noexcept
-  {
-    return std::get<Print>(_instr);
+    return std::get<Binding>(instruction);
   }
 
- private:
-  std::variant<Binding, Print> _instr;
+  [[nodiscard]] Print const& print_unsafe() const noexcept { return std::get<Print>(instruction); }
+
+  std::variant<Binding, Print> instruction;
 };
 
 struct Program : public AbstractSyntaxNode
@@ -55,12 +52,6 @@ struct Program : public AbstractSyntaxNode
 
   void add_instruction(Instruction instr) noexcept;
 
-  [[nodiscard]] constexpr std::vector<Instruction> const& instructions() const noexcept
-  {
-    return _instructions;
-  }
-
- private:
-  std::vector<Instruction> _instructions;
+  std::vector<Instruction> instructions;
 };
 }  // namespace jackal::ast

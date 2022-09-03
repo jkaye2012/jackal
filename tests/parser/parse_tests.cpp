@@ -62,11 +62,10 @@ TEST_CASE("Parsing program should return all instructions")
   auto result = parser.parse_program();
 
   CHECKED_ELSE(result.is_ok()) { FAIL(result.err().message()); }
-  REQUIRE(result->instructions().size() == 3);
-  REQUIRE(result->instructions().at(0).binding_unsafe().variable().name() == "x");
-  REQUIRE(result->instructions().at(1).binding_unsafe().variable().name() == "y");
-  REQUIRE(result->instructions()
-              .at(2)
+  REQUIRE(result->instructions.size() == 3);
+  REQUIRE(result->instructions.at(0).binding_unsafe().variable().name() == "x");
+  REQUIRE(result->instructions.at(1).binding_unsafe().variable().name() == "y");
+  REQUIRE(result->instructions.at(2)
               .print_unsafe()
               .expression()
               .operator_unsafe()

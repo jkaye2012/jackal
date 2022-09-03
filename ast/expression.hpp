@@ -18,7 +18,7 @@ struct Expression : public AbstractSyntaxNode
     Operator::Builder op;
     Value::Builder value;
 
-    [[nodiscard]] constexpr bool was_modified() const noexcept
+    [[nodiscard]] bool was_modified() const noexcept
     {
       return op.was_modified() || value.was_modified();
     }
@@ -35,19 +35,19 @@ struct Expression : public AbstractSyntaxNode
     }
   };
 
-  [[nodiscard]] constexpr Operator const& operator_unsafe() const noexcept
+  [[nodiscard]] Operator const& operator_unsafe() const noexcept
   {
     return std::get<Operator>(_expr);
   }
-  [[nodiscard]] constexpr Value const& value_unsafe() const noexcept
-  {
-    return std::get<Value>(_expr);
-  }
+  [[nodiscard]] Value const& value_unsafe() const noexcept { return std::get<Value>(_expr); }
 
   explicit Expression(Operator op) : _expr(std::move(op)) {}
   explicit Expression(Value value) : _expr(std::move(value)) {}
 
   void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
+
+  std::variant<Operator, Value>& expression() noexcept { return _expr; }
+  std::variant<Operator, Value> const& expression() const noexcept { return _expr; }
 
  private:
   std::variant<Operator, Value> _expr;
@@ -88,8 +88,11 @@ struct Binding : public AbstractSyntaxNode
 
   void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
 
-  [[nodiscard]] constexpr LocalVariable const& variable() const noexcept { return _variable; }
-  [[nodiscard]] constexpr Expression const& expression() const noexcept { return _expr; }
+  [[nodiscard]] LocalVariable& variable() noexcept { return _variable; }
+  [[nodiscard]] LocalVariable const& variable() const noexcept { return _variable; }
+
+  [[nodiscard]] Expression& expression() noexcept { return _expr; }
+  [[nodiscard]] Expression const& expression() const noexcept { return _expr; }
 
  private:
   LocalVariable _variable;
@@ -117,7 +120,8 @@ struct Print : public AbstractSyntaxNode
 
   void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
 
-  [[nodiscard]] constexpr Expression const& expression() const noexcept { return _expr; }
+  [[nodiscard]] Expression& expression() noexcept { return _expr; }
+  [[nodiscard]] Expression const& expression() const noexcept { return _expr; }
 
  private:
   Expression _expr;

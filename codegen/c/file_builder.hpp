@@ -6,6 +6,7 @@
 #include <ostream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "codegen/c/dependency.hpp"
 #include "util/result.hpp"
@@ -59,7 +60,7 @@ struct FunctionDefinition
 {
   template <std::size_t N>
   FunctionDefinition(FileBuilder& fileBuilder, std::string_view returnType, std::string_view name,
-                     std::array<Parameter, N> params) noexcept
+                     std::array<Parameter, N> const& params) noexcept
       : _fileBuilder(fileBuilder)
   {
     _fileBuilder << returnType << ' ' << name << '(';
@@ -73,6 +74,9 @@ struct FunctionDefinition
     }
     _fileBuilder << ") {" << std::endl;
   }
+
+  FunctionDefinition(FileBuilder& fileBuilder, std::string_view returnType, std::string_view name,
+                     std::vector<Parameter> const& params) noexcept;
 
   ~FunctionDefinition() noexcept { _fileBuilder << '}' << std::endl; }
 
@@ -101,9 +105,29 @@ struct FunctionCall
 
 struct VariableBinding
 {
+  VariableBinding(FileBuilder& fileBuilder, std::string_view type, std::string_view name) noexcept;
+  ~VariableBinding() noexcept;
+
+  VariableBinding(VariableBinding const&) = delete;
+  VariableBinding& operator=(VariableBinding const&) = delete;
+  VariableBinding(VariableBinding&&) noexcept = delete;
+  VariableBinding& operator=(VariableBinding&&) noexcept = delete;
+
+ private:
+  FileBuilder& _fileBuilder;
 };
 
 struct DirectExpression
 {
+  DirectExpression(FileBuilder& fileBuilder, std::string_view expression) noexcept;
+  ~DirectExpression() noexcept;
+
+  DirectExpression(DirectExpression const&) = delete;
+  DirectExpression& operator=(DirectExpression const&) = delete;
+  DirectExpression(DirectExpression&&) noexcept = delete;
+  DirectExpression& operator=(DirectExpression&&) noexcept = delete;
+
+ private:
+  FileBuilder& _fileBuilder;
 };
 }  // namespace jackal::codegen::c

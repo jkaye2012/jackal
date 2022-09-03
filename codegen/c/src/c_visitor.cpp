@@ -1,23 +1,100 @@
 #include "codegen/c/c_visitor.hpp"
 
+#include <array>
+#include <string>
+#include <variant>
+
 #include "ast/include.hpp"
+#include "ast/visitor.hpp"
+#include "codegen/c/file_builder.hpp"
+#include "codegen/executable.hpp"
 
 using jackal::codegen::c::CVisitor;
 
-auto CVisitor::visit(ast::Operator& node) noexcept -> void {}
+auto CVisitor::visit(ast::Operator& node) noexcept -> void
+{
+  node.a().accept(*this);
+  switch (node.type())
+  {
+    case jackal::ast::Operator::Type::Add:
+      DirectExpression(_fileBuilder, " + ");
+      break;
+  }
+  node.b().accept(*this);
+}
 
-auto CVisitor::visit(ast::Expression& node) noexcept -> void {}
+auto CVisitor::visit(ast::Expression& node) noexcept -> void
+{
+  std::visit(
+      [this](auto& variant)
+      {
+        variant.accept(*this);
+      },
+      node.expression());
+}
 
-auto CVisitor::visit(ast::Binding& node) noexcept -> void {}
+auto CVisitor::visit(ast::Binding& node) noexcept -> void
+{
+  VariableBinding(_fileBuilder, "int", node.variable().name());
+  node.expression().accept(*this);
+}
 
-auto CVisitor::visit(ast::Print& node) noexcept -> void {}
+auto CVisitor::visit(ast::Print& node) noexcept -> void
+{
+  auto result = _fileBuilder.add_dependency({Dependency::Type::System, "stdio.h"});
+  // TODO: handle this result properly, forward through type system
+  assert(!result.has_value());
 
-auto CVisitor::visit(ast::Instruction& node) noexcept -> void {}
+  FunctionCall(_fileBuilder, "printf");
+  node.expression().accept(*this);
+}
 
-auto CVisitor::visit(ast::Program& node) noexcept -> void {}
+auto CVisitor::visit(ast::Instruction& node) noexcept -> void
+{
+  std::visit(
+      [this](auto& variant)
+      {
+        variant.accept(*this);
+      },
+      node.instruction);
+}
 
-auto CVisitor::visit(ast::Value& node) noexcept -> void {}
+auto CVisitor::visit(ast::Program& node) noexcept -> void
+{
+  static const std::array<Parameter, 2> mainParams{Parameter{"int", "argc"},
+                                                   Parameter{"char**", "argv"}};
+  FunctionDefinition(_fileBuilder, "int", "main", mainParams);
+  for (auto& instr : node.instructions)
+  {
+    instr.accept(*this);
+  }
+}
 
-auto CVisitor::visit(ast::Constant& node) noexcept -> void {}
+auto CVisitor::visit(ast::Value& node) noexcept -> void
+{
+  std::visit(
+      [this](auto& variant)
+      {
+        variant.accept(*this);
+      },
+      node.value());
+}
 
-auto CVisitor::visit(ast::LocalVariable& node) noexcept -> void {}
+auto CVisitor::visit(ast::Constant& node) noexcept -> void
+{
+  auto str = std::visit(
+      [](auto c)
+      {
+        return std::to_string(c);
+      },
+      node.constant());
+
+  DirectExpression(_fileBuilder, str);
+}
+
+auto CVisitor::visit(ast::LocalVariable& node) noexcept -> void
+{
+  DirectExpression(_fileBuilder, node.name());
+}
+
+auto CVisitor::generate() noexcept -> std::string { return _fileBuilder.build(); }

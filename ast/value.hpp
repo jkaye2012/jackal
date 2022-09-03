@@ -22,6 +22,9 @@ struct Constant : public AbstractSyntaxNode
   [[nodiscard]] int64_t int_unsafe() const noexcept { return std::get<int64_t>(_constant); }
   [[nodiscard]] double double_unsafe() const noexcept { return std::get<double>(_constant); }
 
+  std::variant<int64_t, double>& constant() noexcept { return _constant; };
+  std::variant<int64_t, double> const& constant() const noexcept { return _constant; };
+
  private:
   std::variant<int64_t, double> _constant;
 };
@@ -88,10 +91,14 @@ struct Value : public AbstractSyntaxNode
   {
     return std::get<Constant>(_value);
   }
+
   [[nodiscard]] LocalVariable const& local_variable_unsafe() const noexcept
   {
     return std::get<LocalVariable>(_value);
   }
+
+  std::variant<Constant, LocalVariable>& value() noexcept { return _value; };
+  std::variant<Constant, LocalVariable> const& value() const noexcept { return _value; };
 
  private:
   std::variant<Constant, LocalVariable> _value;

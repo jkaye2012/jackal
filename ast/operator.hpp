@@ -16,7 +16,7 @@ struct Operator : public AbstractSyntaxNode
 
   struct Builder : public AstBuilder
   {
-    constexpr Builder& set_type(Type type) noexcept
+    Builder& set_type(Type type) noexcept
     {
       modified();
       _type = type;
@@ -54,9 +54,13 @@ struct Operator : public AbstractSyntaxNode
 
   void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
 
-  [[nodiscard]] constexpr Type const& type() const noexcept { return _type; }
-  [[nodiscard]] constexpr Value const& a() const noexcept { return _a; }
-  [[nodiscard]] constexpr Value const& b() const noexcept { return _b; }
+  [[nodiscard]] Type type() const noexcept { return _type; }
+
+  [[nodiscard]] Value& a() noexcept { return _a; }
+  [[nodiscard]] Value const& a() const noexcept { return _a; }
+
+  [[nodiscard]] Value& b() noexcept { return _b; }
+  [[nodiscard]] Value const& b() const noexcept { return _b; }
 
  private:
   Type _type;
