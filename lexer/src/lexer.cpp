@@ -7,9 +7,9 @@
 
 using jackal::lexer::Lexer;
 
-auto Lexer::peek() const noexcept -> char const { return *_code; }
+auto Lexer::peek() const noexcept -> char { return *_code; }
 
-auto Lexer::peek_n(std::size_t n) const noexcept -> char const { return *(_code + n); }
+auto Lexer::peek_n(std::size_t n) const noexcept -> char { return *(_code + n); }
 
 auto Lexer::get() noexcept -> char const* { return _code++; }
 
@@ -18,13 +18,13 @@ auto Lexer::tok_unary(Token::Kind kind) noexcept -> Token { return {kind, get(),
 auto Lexer::tok_number() noexcept -> Token
 {
   char const* lexemeBegin = get();
-  while (isdigit(peek()))
+  while (isdigit(peek()) != 0)
   {
     get();
   }
   if (peek() == '.')
   {
-    if (!isdigit(peek_n(2)))
+    if (isdigit(peek_n(2)) == 0)
     {
       get();
       return {Token::Kind::Unknown, lexemeBegin, _code};
@@ -33,7 +33,7 @@ auto Lexer::tok_number() noexcept -> Token
     get();
     get();
   }
-  while (isdigit(peek()))
+  while (isdigit(peek()) != 0)
   {
     get();
   }
@@ -45,7 +45,7 @@ auto Lexer::tok_number() noexcept -> Token
 auto Lexer::tok_identifier() noexcept -> Token
 {
   char const* lexemeBegin = get();
-  while (isalpha(peek()))
+  while (isalpha(peek()) != 0)
   {
     get();
   }
@@ -78,30 +78,28 @@ auto Lexer::_next() noexcept -> Token
   {
     return {Token::Kind::Halt, _code, 1};
   }
-  else if (current == '\n')
+  if (current == '\n')
   {
     return tok_unary(Token::Kind::Newline);
   }
-  else if (current == '+')
+  if (current == '+')
   {
     return tok_unary(Token::Kind::Plus);
   }
-  else if (current == '=')
+  if (current == '=')
   {
     return tok_unary(Token::Kind::Equal);
   }
-  else if (isdigit(current))
+  if (isdigit(current) != 0)
   {
     return tok_number();
   }
-  else if (isalpha(current) && islower(current))
+  if (isalpha(current) != 0 && islower(current) != 0)
   {
     return tok_identifier();
   }
-  else
-  {
-    return tok_unary(Token::Kind::Unknown);
-  }
+
+  return tok_unary(Token::Kind::Unknown);
 }
 
 auto Lexer::is_halted() noexcept -> bool { return _peek.empty() && peek() == '\0'; }

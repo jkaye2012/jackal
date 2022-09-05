@@ -1,7 +1,7 @@
 
 #include "logger/setup.hpp"
 
-int main(int argc, char** arv)
+auto main(int argc, char** arv) -> int
 {
   jackal::logger::Logger logger{};
   return 0;

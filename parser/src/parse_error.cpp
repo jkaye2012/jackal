@@ -17,11 +17,11 @@ ParseError::ParseError(ErrorType type, std::string_view message) noexcept
 
 auto ParseError::invalid_instruction(std::string message) noexcept -> ParseError
 {
-  return ParseError(ErrorType::InvalidInstruction, std::move(message));
+  return {ErrorType::InvalidInstruction, std::move(message)};
 }
 
 // TODO: this error messages needs to be greatly improved, even for phased development
 auto ParseError::unexpected_token(std::string_view token) noexcept -> ParseError
 {
-  return ParseError(ErrorType::UnexpectedToken, token);
+  return {ErrorType::UnexpectedToken, token};
 }

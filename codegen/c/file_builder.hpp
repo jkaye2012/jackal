@@ -121,7 +121,7 @@ struct VariableBinding
 struct DirectExpression
 {
   DirectExpression(FileBuilder& fileBuilder, std::string_view expression) noexcept;
-  ~DirectExpression() noexcept;
+  ~DirectExpression() noexcept = default;
 
   DirectExpression(DirectExpression const&) = delete;
   DirectExpression& operator=(DirectExpression const&) = delete;

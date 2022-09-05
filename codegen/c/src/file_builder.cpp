@@ -19,7 +19,7 @@ auto FileBuilder::add_dependency(Dependency dep) noexcept -> std::optional<Diver
                              : std::nullopt;
   }
 
-  _dependencies.emplace(dep.include(), std::move(dep));
+  _dependencies.emplace(dep.include(), dep);
   return std::nullopt;
 }
 
@@ -94,5 +94,3 @@ DirectExpression::DirectExpression(FileBuilder& fileBuilder, std::string_view ex
 {
   _fileBuilder << expression;
 }
-
-DirectExpression::~DirectExpression() noexcept = default;

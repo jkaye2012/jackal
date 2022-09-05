@@ -43,8 +43,8 @@ struct Lexer
   [[nodiscard]] bool is_halted() noexcept;
 
  private:
-  [[nodiscard]] char const peek() const noexcept;
-  [[nodiscard]] char const peek_n(std::size_t n) const noexcept;
+  [[nodiscard]] char peek() const noexcept;
+  [[nodiscard]] char peek_n(std::size_t n) const noexcept;
   char const* get() noexcept;
 
   Token tok_unary(Token::Kind kind) noexcept;

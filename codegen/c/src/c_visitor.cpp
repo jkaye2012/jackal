@@ -44,13 +44,12 @@ auto CVisitor::visit(ast::Print& node) noexcept -> void
   auto result = _fileBuilder.add_dependency({Dependency::Type::System, "stdio.h"});
   // TODO: handle this result properly, forward through type system
   assert(!result.has_value());
-
   auto call = FunctionCall(_fileBuilder, "printf");
-  DirectExpression(_fileBuilder, "\"%d\\n\", ");
+  DirectExpression(_fileBuilder, "\"%d\\n\", ");  // NOLINT
   node.expression().accept(*this);
 }
 
-auto CVisitor::visit(ast::Instruction& node) noexcept -> void
+auto CVisitor::visit(ast::Instruction& node) noexcept -> void  // NOLINT
 {
   std::visit(
       [this](auto& variant)
@@ -84,9 +83,9 @@ auto CVisitor::visit(ast::Value& node) noexcept -> void
 auto CVisitor::visit(ast::Constant& node) noexcept -> void
 {
   auto str = std::visit(
-      [](auto c)
+      [](auto cnst)
       {
-        return std::to_string(c);
+        return std::to_string(cnst);
       },
       node.constant());
 

@@ -1,4 +1,4 @@
 #define CATCH_CONFIG_RUNNER
 #include "catch.hpp"
 
-int main(int argc, char** argv) { return Catch::Session().run(argc, argv); }
+auto main(int argc, char** argv) -> int { return Catch::Session().run(argc, argv); }
