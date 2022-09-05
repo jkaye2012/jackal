@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 
 #include "ast/visitor.hpp"
 #include "codegen/c/file_builder.hpp"
@@ -10,6 +11,8 @@ namespace jackal::codegen::c
 {
 struct CVisitor : public ast::Visitor, public CodeGenerator
 {
+  explicit CVisitor(std::string name) noexcept;
+
   void visit(ast::Operator& node) noexcept override;
 
   void visit(ast::Expression& node) noexcept override;
@@ -23,9 +26,10 @@ struct CVisitor : public ast::Visitor, public CodeGenerator
   void visit(ast::Constant& node) noexcept override;
   void visit(ast::LocalVariable& node) noexcept override;
 
-  std::string generate() noexcept override;
+  Executable generate() noexcept override;
 
  private:
+  std::string _name;
   FileBuilder _fileBuilder;
 };
 }  // namespace jackal::codegen::c

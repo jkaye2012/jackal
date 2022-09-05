@@ -11,6 +11,8 @@
 
 using jackal::codegen::c::CVisitor;
 
+CVisitor::CVisitor(std::string name) noexcept : _name(std::move(name)) {}
+
 auto CVisitor::visit(ast::Operator& node) noexcept -> void
 {
   node.a().accept(*this);
@@ -61,9 +63,6 @@ auto CVisitor::visit(ast::Instruction& node) noexcept -> void  // NOLINT
 
 auto CVisitor::visit(ast::Program& node) noexcept -> void
 {
-  // static const std::array<Parameter, 2> mainParams{Parameter{"int", "argc"},
-  //                                                  Parameter{"char**", "argv"}};
-  // FunctionDefinition(_fileBuilder, "int", "main", mainParams);
   for (auto& instr : node.instructions)
   {
     instr.accept(*this);
@@ -97,4 +96,4 @@ auto CVisitor::visit(ast::LocalVariable& node) noexcept -> void
   DirectExpression(_fileBuilder, node.name());
 }
 
-auto CVisitor::generate() noexcept -> std::string { return _fileBuilder.build(); }
+auto CVisitor::generate() noexcept -> Executable { return {_name, _fileBuilder.build()}; }

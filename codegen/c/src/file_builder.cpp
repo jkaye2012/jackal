@@ -31,10 +31,10 @@ auto FileBuilder::build() noexcept -> std::string
     switch (dep.type())
     {
       case Dependency::Type::System:
-        oss << '<' << include << '>' << std::endl;
+        oss << "#include <" << include << '>' << std::endl;
         break;
       case Dependency::Type::Source:
-        oss << '"' << include << '"' << std::endl;
+        oss << "#include \"" << include << '"' << std::endl;
         break;
     }
   }

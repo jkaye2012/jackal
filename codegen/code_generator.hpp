@@ -28,6 +28,6 @@ struct CodeGenerator
   /// this function accepts no parameters. The visitor responsible for generating the code is
   /// expected to incrementally construct its own state internally which can then be used during
   /// final code generation.
-  virtual std::string generate() noexcept = 0;
+  virtual Executable generate() noexcept = 0;
 };
 }  // namespace jackal::codegen

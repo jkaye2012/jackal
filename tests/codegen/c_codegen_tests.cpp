@@ -2,6 +2,7 @@
 
 #include "ast/operator.hpp"
 #include "codegen/c/c_visitor.hpp"
+#include "codegen/executable.hpp"
 #include "parser/include.hpp"
 #include "parser/parse.hpp"
 
@@ -14,7 +15,13 @@ TEST_CASE("Test code generation")
   auto result = parser.parse_program();
   CHECKED_ELSE(result.is_ok()) { FAIL(result.err().message()); }
 
-  CVisitor cGen;
+  CVisitor cGen("testCodeGen");
   result->accept(cGen);
-  FAIL(cGen.generate());
+
+  auto executable = cGen.generate();
+  REQUIRE(executable.compile().has_value());
+
+  auto output = executable.execute();
+  REQUIRE(output.has_value());
+  REQUIRE(*output == "6\n");
 }
