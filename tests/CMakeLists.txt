@@ -5,6 +5,8 @@ set(test_files
   "lexer/lexer_tests.cpp"
   "lexer/token_tests.cpp"
   "parser/parse_tests.cpp"
+  "util/exec_tests.cpp"
+  "util/file_system_tests.cpp"
   "util/result_tests.cpp"
   )
 

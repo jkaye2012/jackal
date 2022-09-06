@@ -39,6 +39,7 @@ struct Expression : public AbstractSyntaxNode
   {
     return std::get<Operator>(_expr);
   }
+
   [[nodiscard]] Value const& value_unsafe() const noexcept { return std::get<Value>(_expr); }
 
   explicit Expression(Operator op) : _expr(std::move(op)) {}
@@ -46,8 +47,8 @@ struct Expression : public AbstractSyntaxNode
 
   void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
 
-  std::variant<Operator, Value>& expression() noexcept { return _expr; }
-  std::variant<Operator, Value> const& expression() const noexcept { return _expr; }
+  [[nodiscard]] std::variant<Operator, Value>& expression() noexcept { return _expr; }
+  [[nodiscard]] std::variant<Operator, Value> const& expression() const noexcept { return _expr; }
 
  private:
   std::variant<Operator, Value> _expr;
@@ -71,10 +72,7 @@ struct Binding : public AbstractSyntaxNode
       return *this;
     }
 
-    [[nodiscard]] Binding build() const noexcept
-    {
-      return Binding(_variable.value(), _expr.value());
-    }
+    [[nodiscard]] Binding build() const noexcept { return {_variable.value(), _expr.value()}; }
 
    private:
     std::optional<LocalVariable> _variable;

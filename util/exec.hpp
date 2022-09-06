@@ -16,7 +16,7 @@ namespace jackal::util
 ///
 /// @returns std::nullopt if the shell command fails (or the shell cannot be opened)
 /// @returns The stdout pipe of the executed shell as a string if the command succeeds
-std::optional<std::string> exec(std::string_view command) noexcept
+inline std::optional<std::string> exec(std::string_view command) noexcept
 {
   std::array<char, 128> buffer;  // NOLINT
   std::ostringstream oss;

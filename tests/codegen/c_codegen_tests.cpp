@@ -1,27 +1,27 @@
 #include <catch.hpp>
 
-#include "ast/operator.hpp"
-#include "codegen/c/c_visitor.hpp"
-#include "codegen/executable.hpp"
-#include "parser/include.hpp"
-#include "parser/parse.hpp"
+#include "tests/compilation_comparison.hpp"
 
-using jackal::codegen::c::CVisitor;
-using jackal::parser::Parser;
+using jackal::tests::CompilationBackend;
+using jackal::tests::CompilationComparison;
 
-TEST_CASE("Test code generation")
+TEST_CASE("C code generation: printing constant valued addition", "[codegen_c]")
 {
-  Parser parser("let x = 1 + 2\nlet y = 3\nprint x + y\n");
-  auto result = parser.parse_program();
-  CHECKED_ELSE(result.is_ok()) { FAIL(result.err().message()); }
+  CompilationComparison comparison("print_values");
+  auto result = comparison.compile_and_compare<CompilationBackend::C>("4\n");
+  CHECKED_ELSE(!result.has_value()) { FAIL(*result); }
+}
 
-  CVisitor cGen("testCodeGen");
-  result->accept(cGen);
+TEST_CASE("C code generation: printing a single bound variable", "[codegen_c]")
+{
+  CompilationComparison comparison("print_variable");
+  auto result = comparison.compile_and_compare<CompilationBackend::C>("125\n");
+  CHECKED_ELSE(!result.has_value()) { FAIL(*result); }
+}
 
-  auto executable = cGen.generate();
-  REQUIRE(executable.compile().has_value());
-
-  auto output = executable.execute();
-  REQUIRE(output.has_value());
-  REQUIRE(*output == "6\n");
+TEST_CASE("C code generation: printing addition of multiple bound variables", "[codegen_c]")
+{
+  CompilationComparison comparison("print_expression");
+  auto result = comparison.compile_and_compare<CompilationBackend::C>("10\n10\n");
+  CHECKED_ELSE(!result.has_value()) { FAIL(*result); }
 }

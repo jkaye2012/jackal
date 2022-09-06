@@ -4,11 +4,18 @@
 #include <iostream>
 
 #include "util/exec.hpp"
+#include "util/file_system.hpp"
 
 using jackal::codegen::Executable;
 
 Executable::Executable(std::string name, std::string source) noexcept
-    : _name(std::move(name)), _source(std::move(source))
+    : Executable(std::move(name), std::move(source), util::TemporaryDirectory())
+{
+}
+
+Executable::Executable(std::string name, std::string source,
+                       util::TemporaryDirectory&& directory) noexcept
+    : _name(std::move(name)), _source(std::move(source)), _dir(std::move(directory))
 {
 }
 
@@ -19,9 +26,8 @@ auto Executable::compile() noexcept -> std::optional<std::string_view>
     return _path;
   }
 
-  // TODO: fix these paths based on compilation environment
-  auto srcPath = "/tmp/" + _name + ".c";
-  auto execPath = "/tmp/" + _name + ".out";
+  auto srcPath = _dir.directory() / (_name + ".c");
+  auto execPath = _dir.directory() / (_name + ".out");
 
   std::ofstream output;
   output.open(srcPath);
@@ -29,7 +35,7 @@ auto Executable::compile() noexcept -> std::optional<std::string_view>
   output.close();
 
   // TODO: handle linking when required, fix hard-coded C compiler
-  auto result = util::exec("/usr/local/bin/clang " + srcPath + " -o " + execPath);
+  auto result = util::exec("/usr/local/bin/clang " + srcPath.string() + " -o " + execPath.string());
   if (!result.has_value())
   {
     return std::nullopt;

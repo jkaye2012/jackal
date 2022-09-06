@@ -39,7 +39,7 @@ struct Operator : public AbstractSyntaxNode
 
     [[nodiscard]] Operator build() const noexcept
     {
-      return Operator(_type.value(), _a.value(), _b.value());
+      return {_type.value(), _a.value(), _b.value()};
     }
 
    private:
