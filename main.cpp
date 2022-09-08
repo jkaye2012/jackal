@@ -1,8 +1,13 @@
 
+#include "cli/driver.hpp"
+#include "cli/options.hpp"
 #include "logger/setup.hpp"
 
-auto main(int argc, char** arv) -> int
+using namespace jackal;  // NOLINT
+
+auto main(int argc, char** argv) -> int
 {
-  jackal::logger::Logger logger{};
-  return 0;
+  logger::Logger logger{};
+  cli::Options options(argc, argv);
+  cli::Driver driver(options);
 }

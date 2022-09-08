@@ -1,13 +1,42 @@
 #pragma once
 
+#include <cstdlib>
 #include <exception>
 #include <filesystem>
+#include <fstream>
+#include <ios>
 #include <iostream>
+#include <optional>
 #include <ostream>
 #include <random>
+#include <string>
+
+#include "util/exit.hpp"
 
 namespace jackal::util
 {
+/// @brief Attempts to read a file's content from the filesystem.
+///
+/// The file is read eagerly in its entirety without buffering.
+///
+/// @returns the file's contents if it could be read
+/// @returns std::nullopt if it could not be read for any reason.
+inline std::optional<std::string> read_file(std::filesystem::path const& path) noexcept
+{
+  std::string file;
+  try
+  {
+    std::ifstream inputStream(path);
+    std::stringstream iss;
+    iss << inputStream.rdbuf();
+    return iss.str();
+  }
+  catch (std::ios_base::failure const& fail)
+  {
+    return std::nullopt;
+  }
+}
+
 /// @brief Creates a temporary directory on disk that can be used for short-lived file storage.
 ///
 /// The created directory is not automatically cleaned up or managed in any way after the function
@@ -39,8 +68,8 @@ inline std::filesystem::path temp_dir() noexcept
     }
   }
 
-  std::cerr << "Terminating: could not create temporary directory" << std::endl;
-  std::terminate();
+  std::cerr << "Could not create temporary directory" << std::endl;
+  std::exit(ExitCouldNotCreateTempDir);
 }
 
 /// @brief An RAII wrapper for an ephemeral directory on disk.

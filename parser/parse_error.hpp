@@ -15,6 +15,8 @@ enum class ErrorType
   UnexpectedToken
 };
 
+[[nodiscard]] std::string to_string(ErrorType errorType) noexcept;
+
 // TODO: errors should, in general, be combinable so that error propagation can include contextually
 // nested information relating to failures. Possibly this could have first-class support in Result,
 // but it may also be possible to implement the functionality without coupling the concepts.
@@ -28,7 +30,9 @@ struct ParseError
   /// @brief Constructs a ParseError for an unexpected token.
   static ParseError unexpected_token(std::string_view token) noexcept;
 
-  std::string_view message() const noexcept { return _message; }
+  [[nodiscard]] std::string_view message() const noexcept { return _message; }
+
+  void print() const noexcept;
 
  private:
   ErrorType _type;

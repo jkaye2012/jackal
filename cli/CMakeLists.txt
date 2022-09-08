@@ -1,5 +1,6 @@
 set(cli_src_files
   "src/driver.cpp"
+  "src/options.cpp"
   )
 
 add_library(jackal_cli STATIC ${cli_src_files})

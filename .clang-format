@@ -68,14 +68,14 @@ IncludeBlocks:   Regroup
 IncludeCategories:
   - Regex:           'catch.hpp'
     Priority:        1
-  - Regex:           '^<ext/.*\.h>'
-    Priority:        3
+  - Regex:           'cxxopts.hpp'
+    Priority:        4
   - Regex:           '^<.*\.h>'
     Priority:        2
   - Regex:           '^<.*'
     Priority:        3
   - Regex:           '.*'
-    Priority:        4
+    Priority:        5
 IncludeIsMainRegex: '([-_](test|unittest))?$'
 IndentCaseLabels: true
 IndentPPDirectives: None
