@@ -1,6 +1,6 @@
 #include <catch.hpp>
 
-#include "ast/operator.hpp"
+#include "ast/include.hpp"
 #include "parser/include.hpp"
 #include "parser/parse.hpp"
 
@@ -52,8 +52,10 @@ TEST_CASE("Parsing single print instruction should return Print", "[parser]")
   CHECKED_ELSE(result.is_ok()) { FAIL(result.err().message()); }
   auto const& print = result->print_unsafe();
   REQUIRE(print.expression().operator_unsafe().type() == jackal::ast::Operator::Type::Add);
-  REQUIRE(print.expression().operator_unsafe().a().constant_unsafe().int_unsafe() == 1);
-  REQUIRE(print.expression().operator_unsafe().b().constant_unsafe().int_unsafe() == 2);
+  REQUIRE(print.expression().operator_unsafe().a().value_unsafe().constant_unsafe().int_unsafe() ==
+          1);
+  REQUIRE(print.expression().operator_unsafe().b().value_unsafe().constant_unsafe().int_unsafe() ==
+          2);
 }
 
 TEST_CASE("Parsing program should return all instructions", "[parser]")
@@ -62,14 +64,16 @@ TEST_CASE("Parsing program should return all instructions", "[parser]")
   auto result = parser.parse_program();
 
   CHECKED_ELSE(result.is_ok()) { FAIL(result.err().message()); }
-  REQUIRE(result->instructions.size() == 3);
-  REQUIRE(result->instructions.at(0).binding_unsafe().variable().name() == "x");
-  REQUIRE(result->instructions.at(1).binding_unsafe().variable().name() == "y");
-  REQUIRE(result->instructions.at(2)
+  REQUIRE(result->instructions().size() == 3);
+  REQUIRE(result->instructions().at(0).binding_unsafe().variable().name() == "x");
+  REQUIRE(result->instructions().at(1).binding_unsafe().variable().name() == "y");
+  REQUIRE(result->instructions()
+              .at(2)
               .print_unsafe()
               .expression()
               .operator_unsafe()
               .a()
+              .value_unsafe()
               .local_variable_unsafe()
               .name() == "x");
 }

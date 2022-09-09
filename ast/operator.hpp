@@ -1,9 +1,15 @@
 #pragma once
 
+#include <memory>
 #include <optional>
 
 #include "ast/builder.hpp"
-#include "ast/value.hpp"
+#include "ast/node.hpp"
+#include "ast/visitor.hpp"
+
+// clang-format off
+namespace jackal::ast { struct Expression; }
+// clang-format on
 
 namespace jackal::ast
 {
@@ -16,55 +22,46 @@ struct Operator : public AbstractSyntaxNode
 
   struct Builder : public AstBuilder
   {
-    Builder& set_type(Type type) noexcept
-    {
-      modified();
-      _type = type;
-      return *this;
-    }
+    Builder() noexcept;
+    ~Builder() noexcept;
+    Builder(Builder const&) = delete;
+    Builder& operator=(Builder const&) = delete;
+    Builder(Builder&&) noexcept = delete;
+    Builder& operator=(Builder&&) noexcept = delete;
 
-    Builder& set_a(Value a) noexcept
-    {
-      modified();
-      _a = std::move(a);
-      return *this;
-    }
+    Builder& set_type(Type type) noexcept;
 
-    Builder& set_b(Value b) noexcept
-    {
-      modified();
-      _b = std::move(b);
-      return *this;
-    }
+    Builder& set_a(Expression a) noexcept;
 
-    [[nodiscard]] Operator build() const noexcept
-    {
-      return {_type.value(), _a.value(), _b.value()};
-    }
+    Builder& set_b(Expression b) noexcept;
+
+    [[nodiscard]] Operator build() noexcept;
 
    private:
-    std::optional<Type> _type;
-    std::optional<Value> _a;
-    std::optional<Value> _b;
+    struct Impl;
+    std::unique_ptr<Impl> _impl;
   };
 
-  Operator(Type type, Value a, Value b) noexcept : _type(type), _a(std::move(a)), _b(std::move(b))
-  {
-  }
+  Operator(Type type, Expression a, Expression b) noexcept;
+
+  ~Operator() override;
+  Operator(Operator const&) = delete;
+  Operator& operator=(Operator const&) = delete;
+  Operator(Operator&&) noexcept;
+  Operator& operator=(Operator&&) noexcept;
 
   void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
 
-  [[nodiscard]] Type type() const noexcept { return _type; }
+  [[nodiscard]] Type type() const noexcept;
 
-  [[nodiscard]] Value& a() noexcept { return _a; }
-  [[nodiscard]] Value const& a() const noexcept { return _a; }
+  [[nodiscard]] Expression& a() noexcept;
+  [[nodiscard]] Expression const& a() const noexcept;
 
-  [[nodiscard]] Value& b() noexcept { return _b; }
-  [[nodiscard]] Value const& b() const noexcept { return _b; }
+  [[nodiscard]] Expression& b() noexcept;
+  [[nodiscard]] Expression const& b() const noexcept;
 
  private:
-  Type _type;
-  Value _a;
-  Value _b;
+  struct Impl;
+  std::unique_ptr<Impl> _impl;
 };
 }  // namespace jackal::ast

@@ -54,6 +54,19 @@ struct Result
     }
     return Result<U, Err>::from(err());
   }
+  /// @brief Destructively applies a function to the Result if it is ok, does nothing if it is err.
+  ///
+  /// @param func the function to apply to an ok Result
+  /// @returns the mapped Result
+  template <typename U>
+  [[nodiscard]] constexpr Result<U, Err> consume_map(std::function<U(T)> const& func) noexcept
+  {
+    if (is_ok())
+    {
+      return Result<U, Err>::from(func(consume_ok()));
+    }
+    return Result<U, Err>::from(err());
+  }
 
   /// @brief Applies a function to the Result if it is err, does nothing if it is ok.
   ///
@@ -104,7 +117,7 @@ struct Result
     {
       return;
     }
-    else if (other.is_err())
+    if (other.is_err())
     {
       _result.template emplace<Err>(other.err());
     }
@@ -115,9 +128,36 @@ struct Result
     }
   }
 
+  /// @brief Destructively combines another Result into the current instance depending on mutual
+  /// state.
+  ///
+  /// @see subsume for a more in-depth description.
+  /// @param func the consumption function to apply to the current instance if both Results are ok
+  /// @param other the Result instance to consume
+  template <typename U>
+  constexpr void consume(std::function<void(T&, U)> const& func, Result<U, Err> other) noexcept
+  {
+    if (is_err())
+    {
+      return;
+    }
+    if (other.is_err())
+    {
+      _result.template emplace<Err>(other.err());
+    }
+    else
+    {
+      T& current = std::get<T>(_result);
+      func(current, other.consume_ok());
+    }
+  }
+
   constexpr void operator>>(std::function<void()> const& func) noexcept
   {
-    if (is_ok()) func();
+    if (is_ok())
+    {
+      func();
+    }
   }
 
   constexpr T const* operator->() const noexcept { return std::get_if<T>(&_result); }
@@ -128,6 +168,9 @@ struct Result
 
   /// @returns the value of an ok Result; terminates the program if the Result is err
   [[nodiscard]] constexpr T ok() const noexcept { return std::get<T>(_result); }
+
+  /// @returns the moved value of an ok Result; terminates the program if the Result is err
+  [[nodiscard]] constexpr T consume_ok() noexcept { return std::move(std::get<T>(_result)); }
 
   /// @returns whether the Result in in the err state
   [[nodiscard]] constexpr bool is_err() const noexcept

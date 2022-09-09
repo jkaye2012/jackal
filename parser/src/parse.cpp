@@ -6,8 +6,7 @@
 #include <functional>
 #include <optional>
 
-#include "ast/expression.hpp"
-#include "ast/node.hpp"
+#include "ast/include.hpp"
 #include "ast/visitor.hpp"
 #include "parser/include.hpp"
 #include "parser/keywords.hpp"
@@ -20,11 +19,10 @@ using ExpressionResult = jackal::util::Result<jackal::ast::Expression, jackal::p
 using ValueResult = jackal::util::Result<jackal::ast::Value, jackal::parser::ParseError>;
 using TokenResult = jackal::util::Result<jackal::lexer::Token, jackal::parser::ParseError>;
 
-static std::function<void(jackal::ast::Program&, jackal::ast::Instruction const&)> const
-    program_subsumer =
-        [](jackal::ast::Program& program, jackal::ast::Instruction const& instruction)
+static std::function<void(jackal::ast::Program&, jackal::ast::Instruction)> const program_subsumer =
+    [](jackal::ast::Program& program, jackal::ast::Instruction instruction)
 {
-  program.add_instruction(instruction);
+  program.add_instruction(std::move(instruction));
 };
 
 auto Parser::expect(lexer::Token::Kind kind) noexcept -> TokenResult
@@ -50,8 +48,7 @@ auto Parser::parse_program() noexcept -> ProgramResult
   auto result = ProgramResult::ok_default();
   while (!_lexer.is_halted())
   {
-    auto instruction = parse_instruction();
-    result.subsume(program_subsumer, instruction);
+    result.consume(program_subsumer, parse_instruction());
   }
 
   return result;
@@ -86,7 +83,7 @@ auto Parser::parse_instruction() noexcept -> InstructionResult
     {
       return InstructionResult::from(expression.err());
     }
-    instructionBuilder.binding.set_expression(expression.ok());
+    instructionBuilder.binding.set_expression(expression.consume_ok());
   }
   else if (identifier->lexeme() == keyword::kPrint)
   {
@@ -95,7 +92,7 @@ auto Parser::parse_instruction() noexcept -> InstructionResult
     {
       return InstructionResult::from(expression.err());
     }
-    instructionBuilder.print.set_expression(expression.ok());
+    instructionBuilder.print.set_expression(expression.consume_ok());
   }
   else
   {
@@ -123,25 +120,25 @@ auto Parser::parse_expression() noexcept -> ExpressionResult
   if (!attempt<0>(lexer::Token::Kind::Plus))
   {
     // TODO: force type deduction to work, possible overload using function pointers?
-    std::function<ast::Expression(ast::Value const&)> func = [](auto const& val)
+    std::function<ast::Expression(ast::Value)> func = [](auto val)
     {
-      return ast::Expression(val);
+      return ast::Expression(std::move(val));
     };
-    return value.map(func);
+    return value.consume_map(func);
   }
 
-  ast::Expression::Builder builder;
   _lexer.next();  // Eat attempted Plus
-  auto bValue = parse_value();
-  if (bValue.is_err())
+  auto expr = parse_expression();
+  if (expr.is_err())
   {
-    return ExpressionResult::from(bValue.err());
+    return ExpressionResult::from(expr.err());
   }
 
-  builder.op.set_type(ast::Operator::Type::Add);
-  builder.op.set_a(value.ok());
-  builder.op.set_b(bValue.ok());
-  return ExpressionResult::from(builder.build());
+  ast::Operator::Builder opBuilder;
+  opBuilder.set_type(ast::Operator::Type::Add);
+  opBuilder.set_a(ast::Expression(value.consume_ok()));
+  opBuilder.set_b(expr.consume_ok());
+  return ExpressionResult::from(ast::Expression(opBuilder.build()));
 }
 
 auto Parser::parse_value() noexcept -> ValueResult

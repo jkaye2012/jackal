@@ -1,13 +1,20 @@
 #pragma once
 
 #include <cassert>
+#include <memory>
 #include <optional>
 #include <string_view>
 #include <variant>
 
 #include "ast/builder.hpp"
-#include "ast/operator.hpp"
-#include "ast/value.hpp"
+#include "ast/node.hpp"
+#include "ast/visitor.hpp"
+
+// clang-format off
+namespace jackal::ast { struct LocalVariable; }
+namespace jackal::ast { struct Operator; }
+namespace jackal::ast { struct Value; }
+// clang-format on
 
 namespace jackal::ast
 {
@@ -15,86 +22,86 @@ struct Expression : public AbstractSyntaxNode
 {
   struct Builder : public AstBuilder
   {
-    Operator::Builder op;
-    Value::Builder value;
+    Builder() noexcept;
+    ~Builder() noexcept;
+    Builder(Builder const&) = delete;
+    Builder& operator=(Builder const&) = delete;
+    Builder(Builder&&) noexcept = delete;
+    Builder& operator=(Builder&&) noexcept = delete;
 
-    [[nodiscard]] bool was_modified() const noexcept
-    {
-      return op.was_modified() || value.was_modified();
-    }
+    [[nodiscard]] bool was_modified() const noexcept;
 
-    [[nodiscard]] Expression build() const noexcept
-    {
-      assert(op.was_modified() ^ value.was_modified());
-      if (op.was_modified())
-      {
-        return Expression(op.build());
-      }
+    [[nodiscard]] Expression build() noexcept;
 
-      return Expression(value.build());
-    }
+   private:
+    struct Impl;
+    std::unique_ptr<Impl> _impl;
   };
 
-  [[nodiscard]] Operator const& operator_unsafe() const noexcept
-  {
-    return std::get<Operator>(_expr);
-  }
+  explicit Expression(Operator op);
+  explicit Expression(Value value);
 
-  [[nodiscard]] Value const& value_unsafe() const noexcept { return std::get<Value>(_expr); }
-
-  explicit Expression(Operator op) : _expr(std::move(op)) {}
-  explicit Expression(Value value) : _expr(std::move(value)) {}
+  ~Expression() override;
+  Expression(Expression const&) = delete;
+  Expression& operator=(Expression const&) = delete;
+  Expression(Expression&&) noexcept;
+  Expression& operator=(Expression&&) noexcept;
 
   void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
 
-  [[nodiscard]] std::variant<Operator, Value>& expression() noexcept { return _expr; }
-  [[nodiscard]] std::variant<Operator, Value> const& expression() const noexcept { return _expr; }
+  [[nodiscard]] Operator const& operator_unsafe() const noexcept;
+
+  [[nodiscard]] Value const& value_unsafe() const noexcept;
+
+  [[nodiscard]] std::variant<Operator, Value>& expression() noexcept;
+  [[nodiscard]] std::variant<Operator, Value> const& expression() const noexcept;
 
  private:
-  std::variant<Operator, Value> _expr;
+  struct Impl;
+  std::unique_ptr<Impl> _impl;
 };
 
 struct Binding : public AbstractSyntaxNode
 {
   struct Builder : public AstBuilder
   {
-    Builder& set_variable(std::string_view name) noexcept
-    {
-      modified();
-      _variable = LocalVariable(name);
-      return *this;
-    }
+    Builder() noexcept;
+    ~Builder() noexcept;
+    Builder(Builder const&) = delete;
+    Builder& operator=(Builder const&) = delete;
+    Builder(Builder&&) noexcept = delete;
+    Builder& operator=(Builder&&) noexcept = delete;
 
-    Builder& set_expression(Expression expr) noexcept
-    {
-      modified();
-      _expr = std::move(expr);
-      return *this;
-    }
+    Builder& set_variable(std::string_view name) noexcept;
 
-    [[nodiscard]] Binding build() const noexcept { return {_variable.value(), _expr.value()}; }
+    Builder& set_expression(Expression expr) noexcept;
+
+    [[nodiscard]] Binding build() noexcept;
 
    private:
-    std::optional<LocalVariable> _variable;
-    std::optional<Expression> _expr;
+    struct Impl;
+    std::unique_ptr<Impl> _impl;
   };
 
-  Binding(LocalVariable variable, Expression expr) noexcept
-      : _variable(std::move(variable)), _expr(std::move(expr))
-  {
-  }
+  Binding(LocalVariable variable, Expression expr) noexcept;
+
+  ~Binding() override;
+  Binding(Binding const&) = delete;
+  Binding& operator=(Binding const&) = delete;
+  Binding(Binding&&) noexcept;
+  Binding& operator=(Binding&&) noexcept;
 
   void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
 
-  [[nodiscard]] LocalVariable& variable() noexcept { return _variable; }
-  [[nodiscard]] LocalVariable const& variable() const noexcept { return _variable; }
+  [[nodiscard]] LocalVariable& variable() noexcept;
+  [[nodiscard]] LocalVariable const& variable() const noexcept;
 
-  [[nodiscard]] Expression& expression() noexcept { return _expr; }
-  [[nodiscard]] Expression const& expression() const noexcept { return _expr; }
+  [[nodiscard]] Expression& expression() noexcept;
+  [[nodiscard]] Expression const& expression() const noexcept;
 
  private:
-  LocalVariable _variable;
-  Expression _expr;
+  struct Impl;
+  std::unique_ptr<Impl> _impl;
 };
 
 struct Print : public AbstractSyntaxNode
@@ -108,20 +115,27 @@ struct Print : public AbstractSyntaxNode
       return *this;
     }
 
-    [[nodiscard]] Print build() const noexcept { return Print(_expr.value()); }
+    [[nodiscard]] Print build() noexcept { return Print(std::move(_expr.value())); }
 
    private:
     std::optional<Expression> _expr;
   };
 
-  explicit Print(Expression expr) noexcept : _expr(std::move(expr)) {}
+  explicit Print(Expression expr) noexcept;
+
+  ~Print() override;
+  Print(Print const&) = delete;
+  Print& operator=(Print const&) = delete;
+  Print(Print&&) noexcept;
+  Print& operator=(Print&&) noexcept;
 
   void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
 
-  [[nodiscard]] Expression& expression() noexcept { return _expr; }
-  [[nodiscard]] Expression const& expression() const noexcept { return _expr; }
+  [[nodiscard]] Expression& expression() noexcept;
+  [[nodiscard]] Expression const& expression() const noexcept;
 
  private:
-  Expression _expr;
+  struct Impl;
+  std::unique_ptr<Impl> _impl;
 };
 }  // namespace jackal::ast

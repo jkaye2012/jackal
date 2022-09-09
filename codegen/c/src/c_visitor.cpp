@@ -58,12 +58,12 @@ auto CVisitor::visit(ast::Instruction& node) noexcept -> void  // NOLINT
       {
         variant.accept(*this);
       },
-      node.instruction);
+      node.instruction());
 }
 
 auto CVisitor::visit(ast::Program& node) noexcept -> void
 {
-  for (auto& instr : node.instructions)
+  for (auto& instr : node.instructions())
   {
     instr.accept(*this);
   }

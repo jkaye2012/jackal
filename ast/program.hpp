@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <variant>
 #include <vector>
 
@@ -19,7 +20,7 @@ struct Instruction : public AbstractSyntaxNode
       return binding.was_modified() || print.was_modified();
     }
 
-    [[nodiscard]] Instruction build() const noexcept
+    [[nodiscard]] Instruction build() noexcept
     {
       assert(binding.was_modified() ^ print.was_modified());
       if (binding.was_modified())
@@ -31,27 +32,48 @@ struct Instruction : public AbstractSyntaxNode
     }
   };
 
-  explicit Instruction(Binding binding) noexcept : instruction(std::move(binding)) {}
-  explicit Instruction(Print print) noexcept : instruction(std::move(print)) {}
+  explicit Instruction(Binding binding) noexcept;
+  explicit Instruction(Print print) noexcept;
+
+  ~Instruction() override;
+  Instruction(Instruction const&) = delete;
+  Instruction& operator=(Instruction const&) = delete;
+  Instruction(Instruction&&) noexcept;
+  Instruction& operator=(Instruction&&) noexcept;
 
   void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
 
-  [[nodiscard]] Binding const& binding_unsafe() const noexcept
-  {
-    return std::get<Binding>(instruction);
-  }
+  [[nodiscard]] Binding const& binding_unsafe() const noexcept;
 
-  [[nodiscard]] Print const& print_unsafe() const noexcept { return std::get<Print>(instruction); }
+  [[nodiscard]] Print const& print_unsafe() const noexcept;
 
-  std::variant<Binding, Print> instruction;
+  [[nodiscard]] std::variant<Binding, Print>& instruction() noexcept;
+  [[nodiscard]] std::variant<Binding, Print> const& instruction() const noexcept;
+
+ private:
+  struct Impl;
+  std::unique_ptr<Impl> _impl;
 };
 
 struct Program : public AbstractSyntaxNode
 {
+  Program() noexcept;
+
+  ~Program() override;
+  Program(Program const&) = delete;
+  Program& operator=(Program const&) = delete;
+  Program(Program&&) noexcept;
+  Program& operator=(Program&&) noexcept;
+
   void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
 
   void add_instruction(Instruction instr) noexcept;
 
-  std::vector<Instruction> instructions;
+  [[nodiscard]] std::vector<Instruction>& instructions() noexcept;
+  [[nodiscard]] std::vector<Instruction> const& instructions() const noexcept;
+
+ private:
+  struct Impl;
+  std::unique_ptr<Impl> _impl;
 };
 }  // namespace jackal::ast

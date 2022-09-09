@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <memory>
 #include <optional>
 #include <string_view>
 #include <variant>
@@ -14,31 +15,47 @@ namespace jackal::ast
 {
 struct Constant : public AbstractSyntaxNode
 {
-  explicit Constant(int64_t constant) noexcept : _constant(constant) {}
-  explicit Constant(double constant) noexcept : _constant(constant) {}
+  explicit Constant(int64_t constant) noexcept;
+  explicit Constant(double constant) noexcept;
+
+  ~Constant() override;
+  Constant(Constant const&) = delete;
+  Constant& operator=(Constant const&) = delete;
+  Constant(Constant&&) noexcept;
+  Constant& operator=(Constant&&) noexcept;
 
   void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
 
-  [[nodiscard]] int64_t int_unsafe() const noexcept { return std::get<int64_t>(_constant); }
-  [[nodiscard]] double double_unsafe() const noexcept { return std::get<double>(_constant); }
+  [[nodiscard]] int64_t int_unsafe() const noexcept;
 
-  std::variant<int64_t, double>& constant() noexcept { return _constant; };
-  std::variant<int64_t, double> const& constant() const noexcept { return _constant; };
+  [[nodiscard]] double double_unsafe() const noexcept;
+
+  [[nodiscard]] std::variant<int64_t, double>& constant() noexcept;
+
+  [[nodiscard]] std::variant<int64_t, double> const& constant() const noexcept;
 
  private:
-  std::variant<int64_t, double> _constant;
+  struct Impl;
+  std::unique_ptr<Impl> _impl;
 };
 
 struct LocalVariable : public AbstractSyntaxNode
 {
-  explicit LocalVariable(std::string_view name) noexcept : _name(name) {}
+  explicit LocalVariable(std::string_view name) noexcept;
+
+  ~LocalVariable() override;
+  LocalVariable(LocalVariable const&) = delete;
+  LocalVariable& operator=(LocalVariable const&) = delete;
+  LocalVariable(LocalVariable&&) noexcept;
+  LocalVariable& operator=(LocalVariable&&) noexcept;
 
   void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
 
-  [[nodiscard]] std::string_view name() const noexcept { return _name; }
+  [[nodiscard]] std::string_view name() const noexcept;
 
  private:
-  std::string_view _name;
+  struct Impl;
+  std::unique_ptr<Impl> _impl;
 };
 
 struct Value : public AbstractSyntaxNode
@@ -66,15 +83,15 @@ struct Value : public AbstractSyntaxNode
       return *this;
     }
 
-    [[nodiscard]] Value build() const noexcept
+    [[nodiscard]] Value build() noexcept
     {
       assert(_constant.has_value() ^ _local.has_value());
       if (_constant.has_value())
       {
-        return Value(*_constant);
+        return Value(std::move(*_constant));
       }
 
-      return Value(*_local);
+      return Value(std::move(*_local));
     }
 
    private:
@@ -82,25 +99,27 @@ struct Value : public AbstractSyntaxNode
     std::optional<LocalVariable> _local;
   };
 
-  explicit Value(Constant constant) noexcept : _value(std::move(constant)) {}
-  explicit Value(LocalVariable local) noexcept : _value(std::move(local)) {}
+  explicit Value(Constant constant) noexcept;
+  explicit Value(LocalVariable local) noexcept;
+
+  ~Value() override;
+  Value(Value const&) = delete;
+  Value& operator=(Value const&) = delete;
+  Value(Value&&) noexcept;
+  Value& operator=(Value&&) noexcept;
 
   void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
 
-  [[nodiscard]] Constant const& constant_unsafe() const noexcept
-  {
-    return std::get<Constant>(_value);
-  }
+  [[nodiscard]] Constant const& constant_unsafe() const noexcept;
 
-  [[nodiscard]] LocalVariable const& local_variable_unsafe() const noexcept
-  {
-    return std::get<LocalVariable>(_value);
-  }
+  [[nodiscard]] LocalVariable const& local_variable_unsafe() const noexcept;
 
-  std::variant<Constant, LocalVariable>& value() noexcept { return _value; };
-  std::variant<Constant, LocalVariable> const& value() const noexcept { return _value; };
+  [[nodiscard]] std::variant<Constant, LocalVariable>& value() noexcept;
+
+  [[nodiscard]] std::variant<Constant, LocalVariable> const& value() const noexcept;
 
  private:
-  std::variant<Constant, LocalVariable> _value;
+  struct Impl;
+  std::unique_ptr<Impl> _impl;
 };
 }  // namespace jackal::ast
