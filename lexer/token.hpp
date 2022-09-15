@@ -36,9 +36,9 @@ struct Token
   {
   }
 
-  constexpr Kind kind() const noexcept { return _kind; }
-  constexpr std::string_view lexeme() const noexcept { return _lexeme; }
-  std::string lexeme_str() const noexcept { return std::string(_lexeme); }
+  [[nodiscard]] constexpr Kind kind() const noexcept { return _kind; }
+  [[nodiscard]] constexpr std::string_view lexeme() const noexcept { return _lexeme; }
+  [[nodiscard]] std::string lexeme_str() const noexcept { return std::string(_lexeme); }
 
  private:
   Kind _kind;

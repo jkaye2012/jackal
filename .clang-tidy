@@ -1,5 +1,5 @@
 ---
-Checks:          'bugprone-*,clang-diagnostic-*,clang-analyzer-*,modernize-*,performance-*,readability-*,-modernize-use-trailing-return-type,-readability-identifier-length,-readability-redundant-access-specifiers'
+Checks:          'bugprone-*,clang-diagnostic-*,clang-analyzer-*,modernize-*,performance-*,readability-*,-bugprone-exception-escape,-modernize-use-trailing-return-type,-readability-identifier-length,-readability-redundant-access-specifiers,-readability-magic-numbers'
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false
