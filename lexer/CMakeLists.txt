@@ -1,4 +1,5 @@
 set(lexer_src_files
+  "src/gps.cpp"
   "src/lexer.cpp"
   "src/token.cpp"
   )

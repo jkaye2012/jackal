@@ -11,12 +11,27 @@ auto Lexer::peek() const noexcept -> char { return *_code; }
 
 auto Lexer::peek_n(std::size_t n) const noexcept -> char { return *(_code + n); }
 
-auto Lexer::get() noexcept -> char const* { return _code++; }
+auto Lexer::get() noexcept -> char const*
+{
+  _gps.column_moved(1);
+  return _code++;
+}
 
-auto Lexer::tok_unary(Token::Kind kind) noexcept -> Token { return {kind, get(), 1}; }
+auto Lexer::tok_unary(Token::Kind kind) noexcept -> Token
+{
+  auto loc = _gps.current_location();
+  char const* unary = get();
+  if (kind == Token::Kind::Newline)
+  {
+    _gps.line_moved(_code);
+    loc = _gps.current_location();
+  }
+  return {kind, loc, unary, 1};
+}
 
 auto Lexer::tok_number() noexcept -> Token
 {
+  auto loc = _gps.current_location();
   char const* lexemeBegin = get();
   while (isdigit(peek()) != 0)
   {
@@ -27,7 +42,7 @@ auto Lexer::tok_number() noexcept -> Token
     if (isdigit(peek_n(2)) == 0)
     {
       get();
-      return {Token::Kind::Unknown, lexemeBegin, _code};
+      return {Token::Kind::Unknown, loc, lexemeBegin, _code};
     }
 
     get();
@@ -39,11 +54,12 @@ auto Lexer::tok_number() noexcept -> Token
   }
   char const* lexemeEnd = _code;
 
-  return {Token::Kind::Number, lexemeBegin, lexemeEnd};
+  return {Token::Kind::Number, loc, lexemeBegin, lexemeEnd};
 }
 
 auto Lexer::tok_identifier() noexcept -> Token
 {
+  auto loc = _gps.current_location();
   char const* lexemeBegin = get();
   while (isalpha(peek()) != 0)
   {
@@ -51,7 +67,7 @@ auto Lexer::tok_identifier() noexcept -> Token
   }
   char const* lexemeEnd = _code;
 
-  return {Token::Kind::Identifier, lexemeBegin, lexemeEnd};
+  return {Token::Kind::Identifier, loc, lexemeBegin, lexemeEnd};
 }
 
 auto Lexer::next() noexcept -> Token
@@ -76,7 +92,7 @@ auto Lexer::_next() noexcept -> Token
   char const current = peek();
   if (current == '\0')
   {
-    return {Token::Kind::Halt, _code, 1};
+    return {Token::Kind::Halt, _gps.current_location(), _code, 1};
   }
   if (current == '\n')
   {

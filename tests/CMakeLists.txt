@@ -8,6 +8,7 @@ set(test_files
   "util/exec_tests.cpp"
   "util/file_system_tests.cpp"
   "util/result_tests.cpp"
+  "util/source_location_tests.cpp"
   )
 
 add_executable(jackal_tests ${test_files})

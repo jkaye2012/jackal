@@ -5,6 +5,7 @@
 #include <list>
 #include <type_traits>
 
+#include "lexer/gps.hpp"
 #include "lexer/token.hpp"
 
 namespace jackal::lexer
@@ -13,7 +14,7 @@ struct Lexer
 {
   static constexpr std::size_t MAX_LOOKAHEAD = 4;
 
-  explicit Lexer(char const* code) : _code(code) {}
+  explicit Lexer(char const* code) : _code(code), _gps(_code) {}
 
   Token next() noexcept;
 
@@ -55,6 +56,7 @@ struct Lexer
 
  private:
   char const* _code;
+  GPS _gps;
   std::list<Token> _peek;
 };
 }  // namespace jackal::lexer

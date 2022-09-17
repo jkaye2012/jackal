@@ -8,6 +8,7 @@
 
 #include "lexer/lexer.hpp"
 #include "lexer/token.hpp"
+#include "util/source_location.hpp"
 
 using jackal::lexer::Lexer;
 using jackal::lexer::Token;
@@ -193,7 +194,7 @@ TEST_CASE("Peeking while halted should return halt", "[lexer]")
   REQUIRE(lexer.peek_token<3>().kind() == Token::Kind::Halt);
 }
 
-TEST_CASE("Peeking and next should not set halted until halt is consumed", "[lexer]")
+TEST_CASE("Peeking and next should not set halted until halt is consumed", "[lexer]")  // NOLINT
 {
   auto const* code = "1 2 3 4";
   Lexer lexer(code);
@@ -211,4 +212,23 @@ TEST_CASE("Peeking and next should not set halted until halt is consumed", "[lex
   REQUIRE_FALSE(lexer.is_halted());
   REQUIRE(lexer.next().kind() == Token::Kind::Halt);
   REQUIRE(lexer.is_halted());
+}
+
+TEST_CASE("Lexed tokens should have correct source locations",  // NOLINT
+          "[lexer][source_location]")
+{
+  auto const* code = "let x = 123\nlet y = 456\nlet result = x + y\nprint result\n";
+  Lexer lexer(code);
+
+  REQUIRE(lexer.peek_token<0>().location().line().num() == 0);
+  REQUIRE(lexer.peek_token<0>().location().column() == 0);
+  REQUIRE(lexer.peek_token<1>().location().line().num() == 0);
+  REQUIRE(lexer.peek_token<1>().location().column() == 4);
+  for (auto i = 0; i < 5; ++i)
+  {
+    lexer.next();
+  }
+  REQUIRE(lexer.peek_token<3>().location().line().num() == 1);
+  REQUIRE(lexer.peek_token<3>().location().column() == 8);
+  REQUIRE(lexer.peek_token<0>().location().line().src() == "let y = 456");
 }
