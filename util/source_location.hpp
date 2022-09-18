@@ -72,12 +72,12 @@ struct SourceLocation
 {
   std::ostringstream oss;
   oss << loc.line().src() << std::endl;
-  for (auto i = 0; i <= loc.column(); ++i)
+  for (auto i = 0; i < loc.column(); ++i)
   {
     oss << ' ';
   }
   oss << '^' << std::endl;
-  for (auto i = 0; i <= loc.column(); ++i)
+  for (auto i = 0; i < loc.column(); ++i)
   {
     oss << ' ';
   }

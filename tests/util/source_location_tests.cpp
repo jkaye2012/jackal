@@ -22,5 +22,5 @@ TEST_CASE("Source location to_string should return debug string", "[source_locat
   char const* source = "let this = reasonable\nlet that = broken\nlet test = passing";
   SourceLocation loc(Line(source, 0), 4);
 
-  REQUIRE(jackal::util::to_string(loc) == "let this = reasonable\n     ^\n     └----");
+  REQUIRE(jackal::util::to_string(loc) == "let this = reasonable\n    ^\n    └----");
 }

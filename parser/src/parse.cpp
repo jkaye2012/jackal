@@ -10,6 +10,7 @@
 #include "ast/visitor.hpp"
 #include "parser/include.hpp"
 #include "parser/keywords.hpp"
+#include "util/source_location.hpp"
 
 using jackal::parser::Parser;
 using ProgramResult = jackal::util::Result<jackal::ast::Program, jackal::parser::ParseError>;
@@ -33,7 +34,7 @@ auto Parser::expect(lexer::Token::Kind kind) noexcept -> TokenResult
     return TokenResult::from(token);
   }
 
-  return TokenResult::from(ParseError::unexpected_token(token.lexeme()));
+  return TokenResult::from(ParseError::unexpected_token(token, "invalid syntax"));
 }
 
 template <std::size_t N>
@@ -96,8 +97,8 @@ auto Parser::parse_instruction() noexcept -> InstructionResult
   }
   else
   {
-    return InstructionResult::from(ParseError::invalid_instruction(
-        "must begin with 'let' or 'print'; found '" + identifier->lexeme_str() + "'"));
+    return InstructionResult::from(
+        ParseError::invalid_instruction(identifier.ok(), "must begin with 'let' or 'print'\n"));
   }
 
   auto newline = expect(lexer::Token::Kind::Newline);
@@ -174,7 +175,7 @@ auto Parser::parse_value() noexcept -> ValueResult
   else
   {
     auto unexpected = _lexer.next();
-    return ValueResult::from(ParseError::unexpected_token(unexpected.lexeme()));
+    return ValueResult::from(ParseError::unexpected_token(unexpected, "malformed number literal"));
   }
 
   return ValueResult::from(builder.build());

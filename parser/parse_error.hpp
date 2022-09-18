@@ -1,8 +1,9 @@
 #pragma once
 
-#include <cstdint>
 #include <string>
 #include <string_view>
+
+#include "lexer/token.hpp"
 
 namespace jackal::parser
 {
@@ -17,18 +18,14 @@ enum class ErrorType
 
 [[nodiscard]] std::string to_string(ErrorType errorType) noexcept;
 
-// TODO: errors should, in general, be combinable so that error propagation can include contextually
-// nested information relating to failures. Possibly this could have first-class support in Result,
-// but it may also be possible to implement the functionality without coupling the concepts.
-
 /// @brief Provides user-centric diagnostic errors to help program authors understand syntax errors
 /// in their code.
 struct ParseError
 {
   /// @brief Constructs a ParseError for an invalid top-level instruction.
-  static ParseError invalid_instruction(std::string message) noexcept;
+  static ParseError invalid_instruction(lexer::Token token, std::string_view message) noexcept;
   /// @brief Constructs a ParseError for an unexpected token.
-  static ParseError unexpected_token(std::string_view token) noexcept;
+  static ParseError unexpected_token(lexer::Token token, std::string_view message) noexcept;
 
   [[nodiscard]] std::string_view message() const noexcept { return _message; }
 
@@ -36,10 +33,9 @@ struct ParseError
 
  private:
   ErrorType _type;
+  lexer::Token _token;
   std::string _message;
-  // TODO: include source location information, shared from util?
 
-  ParseError(ErrorType type, std::string message) noexcept;
-  ParseError(ErrorType type, std::string_view message) noexcept;
+  ParseError(ErrorType type, lexer::Token token, std::string_view message) noexcept;
 };
 }  // namespace jackal::parser

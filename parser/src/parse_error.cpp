@@ -2,7 +2,11 @@
 
 #include <iostream>
 #include <ostream>
+#include <sstream>
 #include <string>
+
+#include "lexer/token.hpp"
+#include "util/source_location.hpp"
 
 using jackal::parser::ErrorType;
 using jackal::parser::ParseError;
@@ -12,35 +16,33 @@ using jackal::parser::ParseError;
   switch (errorType)
   {
     case ErrorType::UnexpectedToken:
-      return "UnexpectedToken";
+      return "unexpected token";
     case ErrorType::InvalidInstruction:
-      return "InvalidInstruction";
+      return "invalid instruction";
   }
 }
 
-ParseError::ParseError(ErrorType type, std::string message) noexcept
-    : _type(type), _message(std::move(message))
+ParseError::ParseError(ErrorType type, lexer::Token token, std::string_view message) noexcept
+    : _type(type), _token(token)
 {
+  std::ostringstream oss;
+  oss << "Failed to parse source code: " << to_string(_type) << " on line "
+      << token.location().line().num() << std::endl
+      << std::endl;
+  oss << util::to_string(_token.location()) << message << std::endl;
+  _message = oss.str();
 }
 
-ParseError::ParseError(ErrorType type, std::string_view message) noexcept
-    : _type(type), _message(message)
+auto ParseError::invalid_instruction(lexer::Token token, std::string_view message) noexcept
+    -> ParseError
 {
+  return {ErrorType::InvalidInstruction, token, message};
 }
 
-auto ParseError::invalid_instruction(std::string message) noexcept -> ParseError
+auto ParseError::unexpected_token(lexer::Token token, std::string_view message) noexcept
+    -> ParseError
 {
-  return {ErrorType::InvalidInstruction, std::move(message)};
+  return {ErrorType::UnexpectedToken, token, message};
 }
 
-// TODO: this error messages needs to be greatly improved, even for phased development
-auto ParseError::unexpected_token(std::string_view token) noexcept -> ParseError
-{
-  return {ErrorType::UnexpectedToken, token};
-}
-
-auto ParseError::print() const noexcept -> void
-{
-  std::cerr << "Failed to parse source code:" << std::endl;
-  std::cerr << to_string(_type) << ": " << _message << std::endl;
-}
+auto ParseError::print() const noexcept -> void { std::cerr << _message; }
