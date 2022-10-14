@@ -1,0 +1,5 @@
+fn main (args :: List[String]) -> Int {
+  let n = args.get(0).parse[Number]();
+  write[Stdout](n);
+  0
+}

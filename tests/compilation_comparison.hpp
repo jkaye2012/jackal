@@ -1,11 +1,6 @@
 #pragma once
 
-#include <filesystem>
-#include <fstream>
-#include <iostream>
 #include <optional>
-#include <ostream>
-#include <sstream>
 #include <string>
 #include <string_view>
 
@@ -13,6 +8,7 @@
 #include "codegen/executable.hpp"
 #include "parser/include.hpp"
 #include "parser/parse.hpp"
+#include "tests/resource.hpp"
 
 namespace jackal::tests
 {
@@ -28,19 +24,9 @@ enum class CompilationBackend
 /// target supports a textual representation.
 struct CompilationComparison
 {
-  CompilationComparison(std::string name) : _name(std::move(name))
+  CompilationComparison(std::string name)
+      : _name(std::move(name)), _input(_name + ".jkl"), _expectedCode(_name + ".jkl")
   {
-    std::filesystem::path testResourcesDirectory("./tests/resources");
-
-    std::ifstream inputStream(testResourcesDirectory / (_name + ".jkl"));
-    std::stringstream iss;
-    iss << inputStream.rdbuf();
-    _input = iss.str();
-
-    std::ifstream expectedStream(testResourcesDirectory / (_name + ".c"));
-    std::stringstream ess;
-    ess << expectedStream.rdbuf();
-    _expectedCode = ess.str();
   }
 
   template <CompilationBackend>
@@ -50,14 +36,14 @@ struct CompilationComparison
   std::optional<std::string> compile_and_compare<CompilationBackend::C>(
       std::string_view expectedOutput)
   {
-    parser::Parser parser(_input.c_str());
+    parser::Parser parser(_input.data());
     auto result = parser.parse_program();
 
     codegen::c::CVisitor cGen(_name);
     result->accept(cGen);
 
     auto executable = cGen.generate();
-    if (executable.source() != _expectedCode)
+    if (executable.source() != _expectedCode.content())
     {
       return executable.source();
     }
@@ -73,7 +59,7 @@ struct CompilationComparison
 
  private:
   std::string _name;
-  std::string _input;
-  std::string _expectedCode;
+  FileTestResource _input;
+  FileTestResource _expectedCode;
 };
 }  // namespace jackal::tests

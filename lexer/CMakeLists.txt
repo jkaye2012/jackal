@@ -5,3 +5,5 @@ set(lexer_src_files
   )
 
 add_library(jackal_lexer STATIC ${lexer_src_files})
+
+add_subdirectory(tests)

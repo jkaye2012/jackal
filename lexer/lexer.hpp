@@ -3,7 +3,9 @@
 #include <cstddef>
 #include <iterator>
 #include <list>
+#include <string_view>
 #include <type_traits>
+#include <utility>
 
 #include "lexer/gps.hpp"
 #include "lexer/token.hpp"
@@ -46,11 +48,19 @@ struct Lexer
  private:
   [[nodiscard]] char peek() const noexcept;
   [[nodiscard]] char peek_n(std::size_t n) const noexcept;
+
   char const* get() noexcept;
+  std::pair<char const*, char const*> get(std::size_t n) noexcept;
 
   Token tok_unary(Token::Kind kind) noexcept;
+  Token tok_unknown() noexcept;
   Token tok_number() noexcept;
-  Token tok_identifier() noexcept;
+  Token tok_char() noexcept;
+  Token tok_string() noexcept;
+  Token tok_alphalower() noexcept;
+  Token tok_type_identifier() noexcept;
+  Token tok_is() noexcept;
+  Token tok_returns() noexcept;
 
   Token _next() noexcept;
 

@@ -16,12 +16,40 @@ struct Token
     Newline,
     // \d+[\.\d+]?
     Number,
-    // [a-z][a-zA-Z\d]*
-    Identifier,
+    // '.'
+    Char,
+    // ".*"
+    String,
+    // true|false
+    Boolean,
+    // [a-z]+
+    Keyword,
+    // [a-z][a-z_\d]*
+    ValueIdentifier,
+    // [A-Z][a-zA-Z\d]*
+    TypeIdentifier,
+    // ::
+    Is,
+    // ->
+    Returns,
+    // ;
+    End,
     // =
     Equal,
-    // +
-    Plus,
+    // .
+    Dot,
+    // {
+    OpenScope,
+    // }
+    CloseScope,
+    // [
+    OpenContext,
+    // ]
+    CloseContext,
+    // (
+    OpenGroup,
+    // )
+    CloseGroup,
     // End of program
     Halt,
     // Signals a syntax error

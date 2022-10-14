@@ -2,10 +2,28 @@
 
 #include <cctype>
 #include <cstddef>
+#include <string_view>
+#include <utility>
 
 #include "lexer/token.hpp"
 
 using jackal::lexer::Lexer;
+
+namespace
+{
+auto is_boolean(std::string_view view) -> bool { return view == "true" || view == "false"; }
+
+auto is_keyword(std::string_view view) -> bool
+{
+  return view == "let" || view == "fn" || view == "data" || view == "satisfy" ||
+         view == "concept" || view == "interpret" || view == "effect";
+}
+
+auto is_alphalower_or_number(char c) -> bool
+{
+  return isdigit(c) != 0 || (isalpha(c) != 0 && islower(c) != 0);
+}
+}  // namespace
 
 auto Lexer::peek() const noexcept -> char { return *_code; }
 
@@ -15,6 +33,17 @@ auto Lexer::get() noexcept -> char const*
 {
   _gps.column_moved(1);
   return _code++;
+}
+
+auto Lexer::get(std::size_t n) noexcept -> std::pair<char const*, char const*>
+{
+  char const* begin = get();
+  for (auto i = n - 1; i > 0; --i)
+  {
+    get();
+  }
+
+  return std::make_pair(begin, _code);
 }
 
 auto Lexer::tok_unary(Token::Kind kind) noexcept -> Token
@@ -28,6 +57,8 @@ auto Lexer::tok_unary(Token::Kind kind) noexcept -> Token
   }
   return {kind, loc, unary, 1};
 }
+
+auto Lexer::tok_unknown() noexcept -> Token { return tok_unary(Token::Kind::Unknown); }
 
 auto Lexer::tok_number() noexcept -> Token
 {
@@ -52,22 +83,103 @@ auto Lexer::tok_number() noexcept -> Token
   {
     get();
   }
-  char const* lexemeEnd = _code;
 
-  return {Token::Kind::Number, loc, lexemeBegin, lexemeEnd};
+  return {Token::Kind::Number, loc, lexemeBegin, _code};
 }
 
-auto Lexer::tok_identifier() noexcept -> Token
+auto Lexer::tok_char() noexcept -> Token
+{
+  if (peek_n(2) != '\'')
+  {
+    return tok_unknown();
+  }
+
+  auto loc = _gps.current_location();
+  auto [begin, end] = get(3);
+  return {Token::Kind::Char, loc, begin, end};
+}
+
+auto Lexer::tok_string() noexcept -> Token
 {
   auto loc = _gps.current_location();
   char const* lexemeBegin = get();
-  while (isalpha(peek()) != 0)
+  while (!is_halted() && peek() != '"')
   {
     get();
   }
-  char const* lexemeEnd = _code;
+  if (is_halted())
+  {
+    return {Token::Kind::Unknown, loc, lexemeBegin, _code};
+  }
 
-  return {Token::Kind::Identifier, loc, lexemeBegin, lexemeEnd};
+  get();
+  return {Token::Kind::String, loc, lexemeBegin, _code};
+}
+
+auto Lexer::tok_alphalower() noexcept -> Token
+{
+  auto loc = _gps.current_location();
+  char const* lexemeBegin = get();
+  while (is_alphalower_or_number(peek()))
+  {
+    get();
+  }
+
+  if (peek() != '_')
+  {
+    std::string_view view(lexemeBegin, _code);
+    if (is_boolean(view))
+    {
+      return {Token::Kind::Boolean, loc, lexemeBegin, _code};
+    }
+    if (is_keyword(view))
+    {
+      return {Token::Kind::Keyword, loc, lexemeBegin, _code};
+    }
+  }
+
+  while (peek() == '_' || is_alphalower_or_number(peek()))
+  {
+    get();
+  }
+
+  return {Token::Kind::ValueIdentifier, loc, lexemeBegin, _code};
+}
+
+auto Lexer::tok_type_identifier() noexcept -> Token
+{
+  auto loc = _gps.current_location();
+  char const* lexemeBegin = get();
+  while (isalpha(peek()) != 0 || isdigit(peek()) != 0)
+  {
+    get();
+  }
+
+  return {Token::Kind::TypeIdentifier, loc, lexemeBegin, _code};
+}
+
+auto Lexer::tok_is() noexcept -> Token
+{
+  if (peek_n(1) != ':')
+  {
+    return tok_unknown();
+  }
+
+  auto loc = _gps.current_location();
+  auto [begin, end] = get(2);
+  return {Token::Kind::Is, loc, begin, end};
+}
+
+auto Lexer::tok_returns() noexcept -> Token
+{
+  if (peek_n(1) != '>')
+  {
+    return tok_unknown();
+  }
+
+  auto loc = _gps.current_location();
+  auto [begin, end] = get(2);
+  return {Token::Kind::Returns, loc, begin, end};
 }
 
 auto Lexer::next() noexcept -> Token
@@ -98,24 +210,73 @@ auto Lexer::_next() noexcept -> Token
   {
     return tok_unary(Token::Kind::Newline);
   }
-  if (current == '+')
+  if (current == ';')
   {
-    return tok_unary(Token::Kind::Plus);
+    return tok_unary(Token::Kind::End);
   }
   if (current == '=')
   {
     return tok_unary(Token::Kind::Equal);
   }
+  if (current == '.')
+  {
+    return tok_unary(Token::Kind::Dot);
+  }
+  if (current == '{')
+  {
+    return tok_unary(Token::Kind::OpenScope);
+  }
+  if (current == '}')
+  {
+    return tok_unary(Token::Kind::CloseScope);
+  }
+  if (current == '[')
+  {
+    return tok_unary(Token::Kind::OpenContext);
+  }
+  if (current == ']')
+  {
+    return tok_unary(Token::Kind::CloseContext);
+  }
+  if (current == '(')
+  {
+    return tok_unary(Token::Kind::OpenGroup);
+  }
+  if (current == ')')
+  {
+    return tok_unary(Token::Kind::CloseGroup);
+  }
+  if (current == ':')
+  {
+    return tok_is();
+  }
+  if (current == '-')
+  {
+    return tok_returns();
+  }
+  if (current == '\'')
+  {
+    return tok_char();
+  }
+  if (current == '"')
+  {
+    return tok_string();
+  }
   if (isdigit(current) != 0)
   {
     return tok_number();
   }
-  if (isalpha(current) != 0 && islower(current) != 0)
+  if (isalpha(current) != 0)
   {
-    return tok_identifier();
+    if (islower(current) != 0)
+    {
+      return tok_alphalower();
+    }
+
+    return tok_type_identifier();
   }
 
-  return tok_unary(Token::Kind::Unknown);
+  return tok_unknown();
 }
 
 auto Lexer::is_halted() noexcept -> bool { return _peek.empty() && peek() == '\0'; }
