@@ -8,3 +8,5 @@ set(ast_src_files
   )
 
 add_library(jackal_ast STATIC ${ast_src_files})
+
+add_subdirectory(tests)
