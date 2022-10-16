@@ -1,6 +1,18 @@
 #pragma once
 
 // clang-format off
+namespace jackal::ast { struct Arguments; }
+namespace jackal::ast { struct Context; }
+namespace jackal::ast { struct Expressions; }
+namespace jackal::ast { struct Function; }
+namespace jackal::ast { struct FunctionCall; }
+namespace jackal::ast { struct Number; }
+namespace jackal::ast { struct Parameters; }
+namespace jackal::ast { struct Scope; }
+namespace jackal::ast { struct Type; }
+namespace jackal::ast { struct Variable; }
+
+
 namespace jackal::ast { struct Operator; }
 
 namespace jackal::ast { struct Expression; }
@@ -20,6 +32,17 @@ namespace jackal::ast
 struct Visitor
 {
   virtual ~Visitor() = default;
+
+  virtual void visit(Arguments& node) noexcept = 0;
+  virtual void visit(Context& node) noexcept = 0;
+  virtual void visit(Expressions& node) noexcept = 0;
+  virtual void visit(Function& node) noexcept = 0;
+  virtual void visit(FunctionCall& node) noexcept = 0;
+  virtual void visit(Number& node) noexcept = 0;
+  virtual void visit(Parameters& node) noexcept = 0;
+  virtual void visit(Scope& node) noexcept = 0;
+  virtual void visit(Type& node) noexcept = 0;
+  virtual void visit(Variable& node) noexcept = 0;
 
   virtual void visit(Operator& node) noexcept = 0;
 
