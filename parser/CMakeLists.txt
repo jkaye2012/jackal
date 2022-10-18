@@ -2,6 +2,7 @@ set(parser_src_files
   "src/include.cpp"
   "src/keywords.cpp"
   "src/parse.cpp"
+  "src/parser.cpp"
   "src/parse_error.cpp"
   )
 

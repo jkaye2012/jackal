@@ -25,17 +25,6 @@ struct Parser
   [[nodiscard]] util::Result<ast::Expression, ParseError> parse_expression() noexcept;
   [[nodiscard]] util::Result<ast::Value, ParseError> parse_value() noexcept;
 
-  // TODO: consider incremental parsing for usage in tooling/lsp/etc
-  // One simple solution to consider: when a parsing error is encountered,
-  // continue to consume tokens until a newline is reached. After each newline,
-  // re-attempt parsing. Until this process succeeds, consider all prior errors
-  // to be a part of the same "failure"; then, once one succeeds, include all
-  // previous failures as part of the error context, then continue parsing as usual.
-  //
-  // This is likely to result in many semantic errors later in the program, but should
-  // at least allow the compiler to construct significantly more information than aborting
-  // upon any syntax error.
-
  private:
   [[nodiscard]] util::Result<lexer::Token, ParseError> expect(lexer::Token::Kind kind) noexcept;
   template <std::size_t N>

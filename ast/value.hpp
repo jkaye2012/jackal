@@ -11,8 +11,42 @@
 #include "ast/node.hpp"
 #include "ast/visitor.hpp"
 
+// clang-format off
+namespace jackal::ast { struct Primitive; }
+namespace jackal::ast { struct Type; }
+namespace jackal::ast { struct Variable; }
+// clang-format on
+
 namespace jackal::ast
 {
+// TODO: rename
+struct ValueV1 : public AbstractSyntaxNode
+{
+  void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
+
+  ~ValueV1() override;
+  ValueV1(ValueV1 const&) = delete;
+  ValueV1& operator=(ValueV1 const&) = delete;
+  ValueV1(ValueV1&&) noexcept;
+  ValueV1& operator=(ValueV1&&) noexcept;
+
+  Type& type() noexcept;
+
+  std::variant<Ref<Primitive>, Ref<Variable>> value() noexcept;
+
+  struct Builder : public AstBuilder
+  {
+    Builder& primitive(Primitive prim) noexcept;
+    Builder& variable(Variable var) noexcept;
+
+    [[nodiscard]] ValueV1 build() const noexcept;
+  };
+
+ private:
+  struct Impl;
+  std::unique_ptr<Impl> _impl;
+};
+
 struct Constant : public AbstractSyntaxNode
 {
   explicit Constant(int64_t constant) noexcept;

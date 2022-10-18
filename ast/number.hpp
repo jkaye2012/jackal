@@ -1,7 +1,9 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
 
+#include "ast/builder.hpp"
 #include "ast/node.hpp"
 #include "ast/visitor.hpp"
 
@@ -15,6 +17,9 @@ struct Number : public AbstractSyntaxNode
 {
   void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
 
+  explicit Number(int64_t num) noexcept;
+  explicit Number(double num) noexcept;
+
   ~Number() override;
   Number(Number const&) = delete;
   Number& operator=(Number const&) = delete;
@@ -22,6 +27,14 @@ struct Number : public AbstractSyntaxNode
   Number& operator=(Number&&) noexcept = delete;
 
   Type& type() noexcept;
+
+  struct Builder : public AstBuilder
+  {
+    Builder& value(int64_t num) noexcept;
+    Builder& value(double num) noexcept;
+
+    [[nodiscard]] Number build() const noexcept;
+  };
 
  private:
   struct Impl;

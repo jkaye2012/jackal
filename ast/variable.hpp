@@ -1,9 +1,9 @@
 #pragma once
 
-#include <functional>
 #include <memory>
 #include <optional>
 
+#include "ast/builder.hpp"
 #include "ast/node.hpp"
 #include "ast/visitor.hpp"
 
@@ -29,7 +29,15 @@ struct Variable : public AbstractSyntaxNode
   Type& type() noexcept;
 
   // TODO: determine if this is a correct construction
-  std::optional<std::reference_wrapper<ValueIdentifier>> owner() noexcept;
+  std::optional<Ref<ValueIdentifier>> owner() noexcept;
+
+  struct Builder : public AstBuilder
+  {
+    Builder& name(ValueIdentifier name) noexcept;
+    Builder& owner(ValueIdentifier owner) noexcept;
+
+    [[nodiscard]] Variable build() const noexcept;
+  };
 
  private:
   struct Impl;
