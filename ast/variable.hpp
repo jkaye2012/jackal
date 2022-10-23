@@ -21,20 +21,16 @@ struct Variable : public AbstractSyntaxNode
   ~Variable() override;
   Variable(Variable const&) = delete;
   Variable& operator=(Variable const&) = delete;
-  Variable(Variable&&) noexcept = delete;
-  Variable& operator=(Variable&&) noexcept = delete;
+  Variable(Variable&&) noexcept;
+  Variable& operator=(Variable&&) noexcept;
 
   ValueIdentifier& name() noexcept;
 
   Type& type() noexcept;
 
-  // TODO: determine if this is a correct construction
-  std::optional<Ref<ValueIdentifier>> owner() noexcept;
-
   struct Builder : public AstBuilder
   {
     Builder& name(ValueIdentifier name) noexcept;
-    Builder& owner(ValueIdentifier owner) noexcept;
 
     [[nodiscard]] Variable build() const noexcept;
   };

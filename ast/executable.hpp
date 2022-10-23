@@ -23,7 +23,7 @@ struct Executable : public AbstractSyntaxNode
 
   Function& main() noexcept;
 
-  // TODO: do we need an idea of (top-leve) Form?
+  // TODO: do we need an idea of (top-level) Form?
 
  private:
   struct Impl;

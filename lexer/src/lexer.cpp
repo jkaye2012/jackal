@@ -1,11 +1,13 @@
 #include "lexer/lexer.hpp"
 
+#include <algorithm>
 #include <cctype>
 #include <cstddef>
 #include <string_view>
 #include <utility>
 
 #include "lexer/token.hpp"
+#include "util/keywords.hpp"
 
 using jackal::lexer::Lexer;
 
@@ -15,8 +17,12 @@ auto is_boolean(std::string_view view) -> bool { return view == "true" || view =
 
 auto is_keyword(std::string_view view) -> bool
 {
-  return view == "let" || view == "fn" || view == "data" || view == "satisfy" ||
-         view == "concept" || view == "interpret" || view == "effect";
+  return std::any_of(jackal::util::keyword::AllKeywords.begin(),
+                     jackal::util::keyword::AllKeywords.end(),
+                     [view](auto kw)
+                     {
+                       return kw == view;
+                     });
 }
 
 auto is_alphalower_or_number(char c) -> bool

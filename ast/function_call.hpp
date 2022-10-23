@@ -8,6 +8,7 @@
 // clang-format off
 namespace jackal::ast { struct Context; }
 namespace jackal::ast { struct Parameters; }
+namespace jackal::ast { struct Type; }
 namespace jackal::ast { struct ValueIdentifier; }
 // clang-format on
 
@@ -28,6 +29,8 @@ struct FunctionCall : public AbstractSyntaxNode
   Context& context() noexcept;
 
   Parameters& params() noexcept;
+
+  Type& type() noexcept;
 
   // TODO: extract Function given an Environment (allowing access to Type, Arguments, etc.)
 

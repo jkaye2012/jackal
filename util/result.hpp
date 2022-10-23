@@ -6,6 +6,21 @@
 
 namespace jackal::util
 {
+/// @brief Attempts to define a local variable with the result of an expression, returning n
+/// marshalled error from the current function if the expression fails.
+///
+/// @param var the name of the local variable to define if the expression is successful
+/// @param expr the expression that will be invoked to define @p var. Must return a Result
+/// with an Err that matches @p ErrResult
+/// @param ErrResult the error type to marshall failures. Must be a Result with an Err that
+/// matches the failure case of @p expr
+#define TRY(var, expr, ErrResult)        \
+  auto(var) = (expr);                    \
+  if ((var).is_err())                    \
+  {                                      \
+    return ErrResult::from((var).err()); \
+  }
+
 /// @brief Models the possibility of failure for an operation.
 ///
 /// Jackal's implementation uses Result over exceptions wherever possible.

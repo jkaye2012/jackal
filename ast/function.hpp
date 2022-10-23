@@ -21,8 +21,8 @@ struct Function : public AbstractSyntaxNode
   ~Function() override;
   Function(Function const&) = delete;
   Function& operator=(Function const&) = delete;
-  Function(Function&&) noexcept = delete;
-  Function& operator=(Function&&) noexcept = delete;
+  Function(Function&&) noexcept;
+  Function& operator=(Function&&) noexcept;
 
   ValueIdentifier& name() noexcept;
 

@@ -13,12 +13,22 @@ struct ParserV1
 {
   explicit ParserV1(const char *code) noexcept : _lexer(code) {}
 
+  [[nodiscard]] DataResult parse_data() noexcept;
+  [[nodiscard]] MemberResult parse_member() noexcept;
+
   [[nodiscard]] ExecutableResult parse_executable() noexcept;
   [[nodiscard]] ExpressionResult parse_expression() noexcept;
+  [[nodiscard]] FormResult parse_form() noexcept;
   [[nodiscard]] FunctionResult parse_function() noexcept;
+  [[nodiscard]] FunctionCallResult parse_function_call() noexcept;
   [[nodiscard]] ValueResult parse_value() noexcept;
   [[nodiscard]] VariableResult parse_variable() noexcept;
   [[nodiscard]] PrimitiveResult parse_primitive() noexcept;
+  [[nodiscard]] PropertyAccessResult parse_property_access() noexcept;
+  // While it might seem odd that this returns a Number directly instead of a result,
+  // this is because the only way for this parsing to fail is a bug in the lexer;
+  // therefore, we rely upon assertions within the parser to cause compilation to fail
+  // loudly to alert us of this bug.
   [[nodiscard]] ast::Number parse_number() noexcept;
   // TODO: top-level parsing of Library
 
@@ -38,6 +48,8 @@ struct ParserV1
 
   template <std::size_t N>
   [[nodiscard]] std::optional<lexer::Token> attempt(lexer::Token::Kind kind) noexcept;
+
+  [[nodiscard]] bool peek_primitive() noexcept;
 
  private:
   lexer::Lexer _lexer;

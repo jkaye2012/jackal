@@ -21,8 +21,8 @@ struct Primitive : public AbstractSyntaxNode
   ~Primitive() override;
   Primitive(Primitive const&) = delete;
   Primitive& operator=(Primitive const&) = delete;
-  Primitive(Primitive&&) noexcept = default;
-  Primitive& operator=(Primitive&&) noexcept = default;
+  Primitive(Primitive&&) noexcept;
+  Primitive& operator=(Primitive&&) noexcept;
 
   Type& type() noexcept;
 

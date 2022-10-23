@@ -23,8 +23,8 @@ struct Number : public AbstractSyntaxNode
   ~Number() override;
   Number(Number const&) = delete;
   Number& operator=(Number const&) = delete;
-  Number(Number&&) noexcept = delete;
-  Number& operator=(Number&&) noexcept = delete;
+  Number(Number&&) noexcept;
+  Number& operator=(Number&&) noexcept;
 
   Type& type() noexcept;
 
