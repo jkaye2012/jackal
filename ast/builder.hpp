@@ -2,6 +2,7 @@
 
 namespace jackal::ast
 {
+// TODO: should this take a template param and enforce the presence of a T build() const noexcept?
 struct AstBuilder
 {
   [[nodiscard]] constexpr bool was_modified() const noexcept { return _modified; }

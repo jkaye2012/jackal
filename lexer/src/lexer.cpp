@@ -228,6 +228,10 @@ auto Lexer::_next() noexcept -> Token
   {
     return tok_unary(Token::Kind::Dot);
   }
+  if (current == ',')
+  {
+    return tok_unary(Token::Kind::Comma);
+  }
   if (current == '{')
   {
     return tok_unary(Token::Kind::OpenScope);

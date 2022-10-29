@@ -19,8 +19,8 @@ struct Type : public AbstractSyntaxNode
   ~Type() override;
   Type(Type const&) = delete;
   Type& operator=(Type const&) = delete;
-  Type(Type&&) noexcept = delete;
-  Type& operator=(Type&&) noexcept = delete;
+  Type(Type&&) noexcept;
+  Type& operator=(Type&&) noexcept;
 
   TypeIdentifier& name() noexcept;
 

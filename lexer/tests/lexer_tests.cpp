@@ -206,6 +206,14 @@ TEST_CASE("Dot should lex", "[lexer][lexer_token]")
   require_next(lexer, Token::Kind::Dot, ".");
 }
 
+TEST_CASE("Comma should lex", "[lexer][lexer_token]")
+{
+  auto const* code = ",";
+  Lexer lexer(code);
+
+  require_next(lexer, Token::Kind::Comma, ",");
+}
+
 TEST_CASE("Halt should lex continuously", "[lexer][lexer_token]")
 {
   auto const* code = "";

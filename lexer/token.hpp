@@ -38,6 +38,8 @@ struct Token
     Equal,
     // .
     Dot,
+    // ,
+    Comma,
     // {
     OpenScope,
     // }
@@ -75,6 +77,8 @@ struct Token
   [[nodiscard]] constexpr std::string_view lexeme() const noexcept { return _lexeme; }
 
   [[nodiscard]] std::string lexeme_str() const noexcept { return std::string(_lexeme); }
+
+  auto operator<=>(Token const&) const noexcept = default;
 
  private:
   Kind _kind;

@@ -19,8 +19,8 @@ struct Arguments : public AbstractSyntaxNode
   ~Arguments() override;
   Arguments(Arguments const&) = delete;
   Arguments& operator=(Arguments const&) = delete;
-  Arguments(Arguments&&) noexcept = delete;
-  Arguments& operator=(Arguments&&) noexcept = delete;
+  Arguments(Arguments&&) noexcept;
+  Arguments& operator=(Arguments&&) noexcept;
 
   [[nodiscard]] size_t length() const noexcept;
 

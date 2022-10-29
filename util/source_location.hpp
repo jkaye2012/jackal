@@ -38,6 +38,8 @@ struct Line
   /// @returns the line number
   [[nodiscard]] constexpr uint64_t num() const noexcept { return _num; }
 
+  auto operator<=>(Line const&) const noexcept = default;
+
  private:
   std::string_view _src;
   uint64_t _num;
@@ -55,6 +57,8 @@ struct SourceLocation
   [[nodiscard]] constexpr Line line() const noexcept { return _line; }
 
   [[nodiscard]] constexpr uint64_t column() const noexcept { return _column; }
+
+  auto operator<=>(SourceLocation const&) const noexcept = default;
 
  private:
   Line _line;

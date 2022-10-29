@@ -7,12 +7,27 @@
 #include <optional>
 
 #include "ast/include.hpp"
+#include "ast/value_identifier.hpp"
 #include "ast/visitor.hpp"
+#include "lexer/token.hpp"
 #include "parser/include.hpp"
 #include "util/keywords.hpp"
+#include "util/result.hpp"
 #include "util/source_location.hpp"
 
 using jackal::parser::ParserV1;
+
+// TODO: should this be moved into the public API for util::Result?
+
+/// @brief Attempts @p expr, discarding the result if successful or returning an error.
+#define TRY_DISCARD(expr)           \
+  {                                 \
+    auto __discard_trash = (expr);  \
+    if (__discard_trash.is_err())   \
+    {                               \
+      return __discard_trash.err(); \
+    }                               \
+  }
 
 static std::function<void(jackal::ast::Program&, jackal::ast::Instruction)> const program_subsumer =
     [](jackal::ast::Program& program, jackal::ast::Instruction instruction)
@@ -20,15 +35,16 @@ static std::function<void(jackal::ast::Program&, jackal::ast::Instruction)> cons
   program.add_instruction(std::move(instruction));
 };
 
-auto ParserV1::expect(lexer::Token::Kind kind) noexcept -> TokenResult
+auto ParserV1::expect(lexer::Token::Kind kind) noexcept -> ParseResult<jackal::lexer::Token>
 {
   auto token = _lexer.next();
   if (token.kind() == kind)
   {
-    return TokenResult::from(token);
+    return ParseResult<jackal::lexer::Token>::from(token);
   }
 
-  return TokenResult::from(ParseError::unexpected_token(token, "invalid syntax"));
+  return ParseResult<jackal::lexer::Token>::from(
+      ParseError::unexpected_token(token, "invalid syntax"));
 }
 
 template <std::size_t N>
@@ -44,60 +60,103 @@ bool ParserV1::peek_primitive() noexcept
   return attempt<0>(lexer::Token::Kind::Number).has_value();
 }
 
-auto ParserV1::parse_data() noexcept -> DataResult {}
+auto ParserV1::parse_data() noexcept -> ParseResult<ast::Data> {}
 
-auto ParserV1::parse_member() noexcept -> MemberResult {}
+auto ParserV1::parse_member() noexcept -> ParseResult<ast::Member> {}
 
-auto ParserV1::parse_executable() noexcept -> ExecutableResult {}
+auto ParserV1::parse_executable() noexcept -> ParseResult<ast::Executable> {}
 
-auto ParserV1::parse_expression() noexcept -> ExpressionResult {}
+auto ParserV1::parse_expression() noexcept -> ParseResult<ast::Expression> {}
 
-auto ParserV1::parse_form() noexcept -> FormResult
+auto ParserV1::parse_form() noexcept -> ParseResult<ast::Form>
 {
   ast::Form::Builder formBuilder;
-  TRY(keywordResult, expect(lexer::Token::Kind::Keyword), FormResult);
+  TRY_ASSIGN(keywordResult, expect(lexer::Token::Kind::Keyword));
   if (keywordResult->lexeme() == util::keyword::Data)
   {
-    TRY(dataResult, parse_data(), FormResult);
+    TRY_ASSIGN(dataResult, parse_data());
     formBuilder.data(dataResult.consume_ok());
   }
   if (keywordResult->lexeme() == util::keyword::Fn)
   {
-    TRY(functionResult, parse_function(), FormResult);
+    TRY_ASSIGN(functionResult, parse_function());
     formBuilder.function(functionResult.consume_ok());
   }
   else
   {
-    return FormResult::from(
+    return ParseResult<ast::Form>::from(
         ParseError::unexpected_token(keywordResult.consume_ok(), "unknown top-level form"));
   }
 
-  return FormResult::from(formBuilder.build());
+  return ParseResult<ast::Form>::from(formBuilder.build());
 }
 
-auto ParserV1::parse_function() noexcept -> FunctionResult {}
+auto ParserV1::parse_function() noexcept -> ParseResult<ast::Function>
+{
+  TRY_ASSIGN(nameResult, expect(lexer::Token::Kind::ValueIdentifier));
+  ast::ValueIdentifier name(nameResult.consume_ok());
 
-auto ParserV1::parse_function_call() noexcept -> FunctionCallResult {}
+  ast::Context ctx;
+  if (attempt<0>(lexer::Token::Kind::OpenContext))
+  {
+    TRY_ASSIGN(contextResult, parse_context());
+    ctx = contextResult.consume_ok();
+  }
 
-auto ParserV1::parse_primitive() noexcept -> PrimitiveResult
+  TRY_CONSUME(arguments, parse_arguments());
+  TRY_DISCARD(expect(lexer::Token::Kind::Returns));
+  TRY_CONSUME(type, parse_type());
+  TRY_CONSUME(scope, parse_scope());
+
+  return ParseResult<ast::Function>::from(
+      ast::Function(name, std::move(ctx), std::move(arguments), std::move(type), std::move(scope)));
+}
+
+auto ParserV1::parse_context() noexcept -> ParseResult<ast::Context>
+{
+  ast::Context::Builder builder;
+  TRY_DISCARD(expect(lexer::Token::Kind::OpenContext));
+  while (attempt<0>(lexer::Token::Kind::TypeIdentifier))
+  {
+    TRY_CONSUME(type, parse_type());
+    builder.append_type(std::move(type));
+    if (!attempt<0>(lexer::Token::Kind::CloseContext))
+    {
+      TRY_DISCARD(expect(lexer::Token::Kind::Comma));
+    }
+  }
+  TRY_DISCARD(expect(lexer::Token::Kind::CloseContext));
+
+  return builder.build();
+}
+
+auto ParserV1::parse_arguments() noexcept -> ParseResult<ast::Arguments> {}
+
+auto ParserV1::parse_type() noexcept -> ParseResult<ast::Type> {}
+
+auto ParserV1::parse_scope() noexcept -> ParseResult<ast::Scope> {}
+
+auto ParserV1::parse_function_call() noexcept -> ParseResult<ast::FunctionCall> {}
+
+auto ParserV1::parse_primitive() noexcept -> ParseResult<ast::Primitive>
 {
   // TODO: implement parsing for primitivies other than Number
   ast::Primitive::Builder primitiveBuilder;
   primitiveBuilder.number(parse_number());
 
-  return PrimitiveResult::from(primitiveBuilder.build());
+  return ParseResult<ast::Primitive>::from(primitiveBuilder.build());
 }
 
-auto ParserV1::parse_property_access() noexcept -> PropertyAccessResult {}
+auto ParserV1::parse_property_access() noexcept -> ParseResult<ast::PropertyAccess> {}
 
-auto ParserV1::parse_variable() noexcept -> VariableResult
+auto ParserV1::parse_variable() noexcept -> ParseResult<ast::Variable>
 {
   ast::Variable::Builder variableBuilder;
 
-  TRY(nameResult, expect(lexer::Token::Kind::ValueIdentifier), VariableResult);
-  variableBuilder.name(ast::ValueIdentifier(nameResult->lexeme()));
+  TRY_ASSIGN(nameResult, expect(lexer::Token::Kind::ValueIdentifier));
+  variableBuilder.name(ast::ValueIdentifier(nameResult.consume_ok()));
 
-  return VariableResult::from(variableBuilder.build());
+  return ParseResult<ast::Variable>::from(variableBuilder.build());
 }
 
 auto ParserV1::parse_number() noexcept -> ast::Number
@@ -123,25 +182,24 @@ auto ParserV1::parse_number() noexcept -> ast::Number
   return builder.build();
 }
 
-auto ParserV1::parse_value() noexcept -> ValueResult
+auto ParserV1::parse_value() noexcept -> ParseResult<ast::ValueV1>
 {
   ast::ValueV1::Builder valueBuilder;
 
   if (attempt<0>(lexer::Token::Kind::ValueIdentifier))
   {
-    TRY(variableResult, parse_variable(), ValueResult);
+    TRY_ASSIGN(variableResult, parse_variable());
     valueBuilder.variable(variableResult.consume_ok());
   }
   else if (peek_primitive())
   {
-    // TODO: parse_primitive must consume next token to advance parsing
-    TRY(primitiveResult, parse_primitive(), ValueResult);
+    TRY_ASSIGN(primitiveResult, parse_primitive());
     valueBuilder.primitive(primitiveResult.consume_ok());
   }
   else
   {
     auto unexpected = _lexer.next();
-    return ValueResult::from(ParseError::unexpected_token(
+    return ParseResult<ast::ValueV1>::from(ParseError::unexpected_token(
         unexpected, "malformed value; expected variable or primitive"));
   }
 
@@ -152,5 +210,5 @@ auto ParserV1::parse_value() noexcept -> ValueResult
   // real-world use and so that I can more easily debug lexing/parsing issues
   // during development.
 
-  return ValueResult::from(valueBuilder.build());
+  return ParseResult<ast::ValueV1>::from(valueBuilder.build());
 }

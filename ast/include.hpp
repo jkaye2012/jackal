@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ast/arguments.hpp"
+#include "ast/context.hpp"
 #include "ast/data.hpp"
 #include "ast/expression.hpp"
 #include "ast/form.hpp"
@@ -10,6 +12,8 @@
 #include "ast/operator.hpp"
 #include "ast/program.hpp"
 #include "ast/property_access.hpp"
+#include "ast/scope.hpp"
+#include "ast/type.hpp"
 #include "ast/value.hpp"
 #include "ast/value_identifier.hpp"
 #include "ast/visitor.hpp"

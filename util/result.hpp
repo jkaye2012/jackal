@@ -6,20 +6,33 @@
 
 namespace jackal::util
 {
-/// @brief Attempts to define a local variable with the result of an expression, returning n
+/// @brief Attempts to define a local variable with the result of an expression, returning a
 /// marshalled error from the current function if the expression fails.
 ///
 /// @param var the name of the local variable to define if the expression is successful
 /// @param expr the expression that will be invoked to define @p var. Must return a Result
-/// with an Err that matches @p ErrResult
-/// @param ErrResult the error type to marshall failures. Must be a Result with an Err that
-/// matches the failure case of @p expr
-#define TRY(var, expr, ErrResult)        \
-  auto(var) = (expr);                    \
-  if ((var).is_err())                    \
-  {                                      \
-    return ErrResult::from((var).err()); \
+#define TRY_ASSIGN(var, expr) \
+  auto(var) = (expr);         \
+  if ((var).is_err())         \
+  {                           \
+    return (var).err();       \
   }
+
+/// @brief Attempts to define a local variable with the result of a consumed Result, returning a
+/// marshalled error from the current function if the expression fails.
+///
+/// This macro will define two locals: @p var and @p varResult. varResult will be consumed by
+/// the macro itself, meaning that this value should never be accessed by callers.
+///
+/// @param var the name of the local variable to define if the expression is successful
+/// @param expr the expression that will be invoked to define @p var. Must return a Result
+#define TRY_CONSUME(var, expr) \
+  auto var##Result = (expr);   \
+  if (var##Result.is_err())    \
+  {                            \
+    return var##Result.err();  \
+  }                            \
+  auto(var) = var##Result.consume_ok();
 
 /// @brief Models the possibility of failure for an operation.
 ///
@@ -196,10 +209,10 @@ struct Result
   /// @returns the value of an err Result; terminates the program if the Result is ok
   [[nodiscard]] constexpr Err err() const noexcept { return std::get<Err>(_result); }
 
- private:
-  explicit constexpr Result(T result) noexcept : _result(std::move(result)) {}
-  explicit constexpr Result(Err error) noexcept : _result(std::move(error)) {}
+  constexpr Result(T result) noexcept : _result(std::move(result)) {}
+  constexpr Result(Err error) noexcept : _result(std::move(error)) {}
 
+ private:
   std::variant<T, Err> _result;
 };
 }  // namespace jackal::util

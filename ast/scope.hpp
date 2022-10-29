@@ -19,8 +19,8 @@ struct Scope : public AbstractSyntaxNode
   ~Scope() override;
   Scope(Scope const&) = delete;
   Scope& operator=(Scope const&) = delete;
-  Scope(Scope&&) noexcept = delete;
-  Scope& operator=(Scope&&) noexcept = delete;
+  Scope(Scope&&) noexcept;
+  Scope& operator=(Scope&&) noexcept;
 
   Type& type() noexcept;
 

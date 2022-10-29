@@ -7,6 +7,7 @@
 
 // clang-format off
 namespace jackal::ast { struct Arguments; }
+namespace jackal::ast { struct Context; }
 namespace jackal::ast { struct Scope; }
 namespace jackal::ast { struct Type; }
 namespace jackal::ast { struct ValueIdentifier; }
@@ -18,6 +19,8 @@ struct Function : public AbstractSyntaxNode
 {
   void accept(Visitor& visitor) noexcept override { visitor.visit(*this); }
 
+  Function(ValueIdentifier name, Context ctx, Arguments args, Type ret, Scope body) noexcept;
+
   ~Function() override;
   Function(Function const&) = delete;
   Function& operator=(Function const&) = delete;
@@ -25,6 +28,8 @@ struct Function : public AbstractSyntaxNode
   Function& operator=(Function&&) noexcept;
 
   ValueIdentifier& name() noexcept;
+
+  Context& context() noexcept;
 
   Arguments& args() noexcept;
 
