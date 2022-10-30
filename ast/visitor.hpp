@@ -1,6 +1,7 @@
 #pragma once
 
 // clang-format off
+namespace jackal::ast { struct Argument; }
 namespace jackal::ast { struct Arguments; }
 namespace jackal::ast { struct Context; }
 namespace jackal::ast { struct Data; }
@@ -40,6 +41,7 @@ struct Visitor
 {
   virtual ~Visitor() = default;
 
+  virtual void visit(Argument& node) noexcept = 0;
   virtual void visit(Arguments& node) noexcept = 0;
   virtual void visit(Context& node) noexcept = 0;
   virtual void visit(Data& node) noexcept = 0;

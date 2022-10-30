@@ -19,6 +19,9 @@ using jackal::parser::ParserV1;
 
 // TODO: should this be moved into the public API for util::Result?
 
+// TODO: newlines are essentially completely unhandled right now, do I want any form of whitespace
+// sensitivity in the language?
+
 /// @brief Attempts @p expr, discarding the result if successful or returning an error.
 #define TRY_DISCARD(expr)           \
   {                                 \
@@ -120,6 +123,7 @@ auto ParserV1::parse_context() noexcept -> ParseResult<ast::Context>
   {
     TRY_CONSUME(type, parse_type());
     builder.append_type(std::move(type));
+
     if (!attempt<0>(lexer::Token::Kind::CloseContext))
     {
       TRY_DISCARD(expect(lexer::Token::Kind::Comma));
@@ -130,7 +134,26 @@ auto ParserV1::parse_context() noexcept -> ParseResult<ast::Context>
   return builder.build();
 }
 
-auto ParserV1::parse_arguments() noexcept -> ParseResult<ast::Arguments> {}
+auto ParserV1::parse_arguments() noexcept -> ParseResult<ast::Arguments>
+{
+  ast::Arguments::Builder builder;
+  TRY_DISCARD(expect(lexer::Token::Kind::OpenGroup));
+  while (attempt<0>(lexer::Token::Kind::ValueIdentifier))
+  {
+    TRY_CONSUME(nameToken, expect(lexer::Token::Kind::ValueIdentifier));
+    TRY_DISCARD(expect(lexer::Token::Kind::Is));
+    TRY_CONSUME(type, parse_type());
+    builder.append_arg({ast::ValueIdentifier(nameToken), std::move(type)});
+
+    if (!attempt<0>(lexer::Token::Kind::CloseGroup))
+    {
+      TRY_DISCARD(expect(lexer::Token::Kind::Comma));
+    }
+  }
+  TRY_DISCARD(expect(lexer::Token::Kind::CloseGroup));
+
+  return builder.build();
+}
 
 auto ParserV1::parse_type() noexcept -> ParseResult<ast::Type> {}
 

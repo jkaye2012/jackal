@@ -2,6 +2,8 @@
 
 #include <functional>
 
+#include "ast/visitor.hpp"
+
 // clang-format off
 namespace jackal::ast { struct Visitor; }
 // clang-format on
@@ -15,6 +17,7 @@ struct AbstractSyntaxNode
 {
   virtual constexpr ~AbstractSyntaxNode() = default;
 
+  // TODO: provide default implementation here, remove override from most nodes
   virtual void accept(Visitor& visitor) noexcept = 0;
 
   // TODO: should Type be required of all syntax nodes? Thinking yes
